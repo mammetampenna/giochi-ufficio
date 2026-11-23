@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#161513">
+<meta name="theme-color" content="#0d0b1a">
 <title>Briscola</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='6' y='3' width='20' height='26' rx='4' fill='%23efe9de'/><circle cx='16' cy='16' r='6' fill='%23c9302c'/></svg>">
 <link rel="stylesheet" href="../shared/ui.css">
@@ -14,10 +14,14 @@
   .card.small { width: var(--cs); height: calc(var(--cs) * 1.7); }
   .card.small svg { filter: drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
 
-  /* il tavolo: un piano scuro con un bordo sottile; il colore sta solo nelle carte */
-  #board { position: fixed; inset: 0; overflow: hidden; }
+  /* il tavolo: vetro scuro sopra lo sfondo colorato, con un alone del colore della briscola */
+  #board { position: fixed; inset: 0; overflow: hidden; --bc: #eab53b; }
   #board::before { content: ''; position: absolute; left: 50%; top: 48%; width: min(72vw, 960px); height: min(56vh, 480px); transform: translate(-50%, -50%);
-    border-radius: var(--r-panel); background: var(--card); border: 1px solid var(--line); pointer-events: none; }
+    border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 40px 80px -40px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08); backdrop-filter: blur(6px); pointer-events: none; }
+  #board::after { content: ''; position: absolute; left: 50%; top: 48%; width: 460px; height: 460px; transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--bc) 26%, transparent), transparent 65%); pointer-events: none; transition: background 1s; }
+  #board[data-bris="D"] { --bc: #eab53b; } #board[data-bris="C"] { --bc: #ff5b7f; } #board[data-bris="S"] { --bc: #4f8fd6; } #board[data-bris="B"] { --bc: #3fdc8a; }
 
   /* giocatori */
   .seat { position: absolute; display: flex; align-items: center; gap: 12px; z-index: 2; }
@@ -25,12 +29,12 @@
   .seat[data-pos="left"] { left: var(--gutter); top: 48%; transform: translateY(-50%); flex-direction: column; }
   .seat[data-pos="right"] { right: var(--gutter); top: 48%; transform: translateY(-50%); flex-direction: column; }
   .seat[data-pos="bottom"] { bottom: 16px; left: var(--gutter); }
-  .who { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px 0 8px; border-radius: var(--r); background: var(--card); border: 1px solid var(--line);
-    transition: border-color .2s var(--ease), background-color .2s var(--ease); white-space: nowrap; }
-  .who .nm { font-weight: 500; font-size: 14px; }
-  .who .sub { font-size: 12px; color: var(--mute); }
-  .who.turn { border-color: var(--text); background: var(--raised); }
-  .who.turn .sub { color: var(--text); }
+  .who { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px 0 7px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line);
+    backdrop-filter: blur(10px); transition: box-shadow .4s, transform .4s var(--spring); white-space: nowrap; }
+  .who .nm { font-weight: 700; font-size: 15px; }
+  .who .sub { font-size: 12px; color: var(--dim); }
+  .who.turn { box-shadow: 0 0 0 3px var(--acc2), 0 0 30px -4px var(--acc2); transform: scale(1.05); }
+  .who.turn .sub { color: var(--acc2); font-weight: 700; }
   .who .team { width: 8px; height: 8px; border-radius: 50%; }
   .backs { display: flex; height: calc(var(--cs) * 1.7); }
   .backs .card + .card { margin-left: calc(var(--cs) * -.55); }
@@ -59,7 +63,7 @@
   #deck .stack { position: absolute; inset: 0; }
   #deck .stack .card { position: absolute; inset: 0; }
   #deck .count { position: absolute; left: 0; right: 0; bottom: -28px; text-align: center; font: 400 12px var(--mono); color: var(--mute); white-space: nowrap; }
-  .chip { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 21; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px 0 8px; border-radius: var(--r); background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 500; }
+  .chip { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 21; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(12px); font-weight: 700; white-space: nowrap; }
   .chip svg { width: 22px; height: 22px; }
 
   /* presa al centro */
@@ -72,14 +76,15 @@
   .duo .slot[data-pos="bottom"] { transform: translate(28%, 6%) rotate(6deg); }
   .duo .slot[data-pos="top"] { transform: translate(-28%, -6%) rotate(-5deg); }
   .slot.win { z-index: 2; }
-  .slot .card::after { content: ''; position: absolute; inset: -4px; border-radius: 12%; border: 2px solid var(--text); opacity: 0; transition: opacity .2s var(--ease); }
-  .slot.win .card::after { opacity: 1; }
+  .slot.win .card { animation: winPulse .8s var(--spring); }
+  .slot.win svg { filter: drop-shadow(0 0 18px rgba(255,210,90,.95)) drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+  @keyframes winPulse { 40% { transform: scale(1.12); } }
 
   /* la mia mano */
   #hand { position: absolute; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; gap: 12px; z-index: 5; }
-  #hand .card { cursor: pointer; transition: transform .2s var(--ease), opacity .2s var(--ease); }
+  #hand .card { cursor: pointer; transition: transform .35s var(--spring), opacity .3s; }
   #hand .card:nth-child(1) { transform: rotate(-5deg) translateY(6px); } #hand .card:nth-child(3) { transform: rotate(5deg) translateY(6px); }
-  #hand.my .card:hover { transform: translateY(-16px) !important; }
+  #hand.my .card:hover { transform: translateY(-26px) scale(1.06) !important; }
   #hand:not(.my) .card { cursor: default; }
   #hand .card .k { position: absolute; left: 50%; top: -30px; transform: translateX(-50%); opacity: 0; transition: opacity .2s var(--ease); }
   #hand.my .card .k { opacity: 1; }
@@ -87,21 +92,35 @@
   .ghost { visibility: hidden; }
   .fly { position: fixed; z-index: 60; pointer-events: none; }
 
-  .banner { position: absolute; left: 50%; bottom: calc(var(--ch) + 64px); transform: translateX(-50%); z-index: 6; height: 32px; padding: 0 14px; display: grid; place-items: center; border-radius: var(--r);
-    background: var(--text); color: var(--deep); font-size: 14px; font-weight: 500; animation: rise .25s var(--ease); white-space: nowrap; }
+  .banner { position: absolute; left: 50%; bottom: calc(var(--ch) + 64px); transform: translateX(-50%); z-index: 6; padding: 8px 18px; border-radius: 999px; font-weight: 800;
+    background: var(--grad); color: #1a0d14; animation: popIn .4s var(--spring); white-space: nowrap; }
 
-  .overlay { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(10,9,8,.72); animation: fadeIn .2s var(--ease); }
-  .overlay .modal { width: min(480px, 100%); text-align: center; }
-  .overlay h2 { font-size: 30px; font-weight: 500; margin: 4px 0 20px; }
+  /* il colpo di scena di ogni mano: grande, grosso, colorato */
+  .boom { position: fixed; inset: 0 0 4vh 0; z-index: 65; pointer-events: none; text-align: center; display: grid; place-content: center; justify-items: center; }
+  .boom .big { display: block; font: 800 clamp(72px, 14vw, 150px)/.9 var(--font); letter-spacing: -.04em; -webkit-text-stroke: 3px rgba(13,11,26,.55); paint-order: stroke fill;
+    background: linear-gradient(180deg, #fff6c9, var(--gold) 45%, #ff8a3d); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 8px 0 rgba(13,11,26,.5)) drop-shadow(0 18px 30px rgba(0,0,0,.5)); }
+  .boom.theirs .big { background-image: linear-gradient(180deg, #ffd1dc, var(--acc) 50%, #b3173f); }
+  .boom.zero .big { background-image: linear-gradient(180deg, #ffffff, #b9b3d9 60%, #7f78a8); font-size: clamp(56px, 11vw, 112px); }
+  .boom .tag { display: inline-block; margin-top: 10px; padding: 6px 16px; border-radius: 999px; font-weight: 800; font-size: clamp(15px, 2.4vw, 20px); background: #fff; color: #17142b; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .boom.theirs .tag { background: var(--acc); color: #fff; }
+  .spark { position: fixed; z-index: 64; width: 12px; height: 12px; border-radius: 3px; pointer-events: none; }
+  .pts-chip { position: fixed; z-index: 66; pointer-events: none; opacity: 0; font: 800 20px/1 var(--font); color: #2a1a00; background: var(--gold); padding: 6px 12px; border-radius: 999px; box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+
+  .overlay { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(8,6,18,.6); backdrop-filter: blur(8px); animation: fadeIn .3s; }
+  .overlay .modal { width: min(500px, 100%); text-align: center; }
+  .overlay h2 { font-size: clamp(36px, 8vw, 52px); font-weight: 800; letter-spacing: -.03em; margin: 4px 0 20px; line-height: 1; }
+  .overlay h2 .l { display: inline-block; }
+  .overlay h2.win { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .teams { display: grid; gap: 8px; text-align: left; margin-bottom: 20px; }
-  .tmf { padding: 12px 16px; border-radius: var(--r-card); background: var(--raised); }
-  .tmf .row1 { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 15px; }
+  .tmf { padding: 12px 16px; border-radius: 18px; background: var(--panel); }
+  .tmf .row1 { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; }
   .tmf .row1 .avatar { width: 28px; height: 28px; font-size: 15px; }
-  .tmf .row1 b { margin-left: auto; font: 500 28px/1 var(--mono); }
-  .tmf .bar { height: 6px; border-radius: 3px; background: var(--card); margin-top: 12px; overflow: hidden; position: relative; }
-  .tmf .bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 3px; }
-  .tmf .bar::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; background: var(--bg); }
-  .tmf.w { box-shadow: inset 0 0 0 1px var(--text); }
+  .tmf .row1 b { margin-left: auto; font: 800 34px/1 var(--font); }
+  .tmf .bar { height: 12px; border-radius: 99px; background: rgba(255,255,255,.08); margin-top: 10px; overflow: hidden; position: relative; }
+  .tmf .bar i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 99px; }
+  .tmf .bar::after { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: rgba(255,255,255,.55); }
+  .tmf.w { box-shadow: 0 0 0 2px var(--ok), 0 0 30px -8px var(--ok); }
   .match { color: var(--dim); font-size: 14px; margin: 0 0 20px; }
   .match .num { color: var(--text); }
 
@@ -136,13 +155,13 @@
 </style>
 </head>
 <body>
+<div class="aurora"><i></i><i></i><i></i></div>
 <div id="lobby"></div>
 <div id="board" class="hidden">
   <div id="deck"><div class="bris"></div><div class="stack"></div><div class="count"></div></div>
   <div id="trick"></div>
   <div id="seats"></div>
   <div id="hand"></div>
-  <div class="score hidden" id="score"></div>
 </div>
 <div class="chip hidden" id="chip"></div>
 <script type="module" src="briscola.js"></script>

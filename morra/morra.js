@@ -116,17 +116,18 @@ function status(id, txt, ok) {
 // il punto: un "+1" parte dalla mano di chi ha indovinato e arriva sul suo punteggio, che scorre al nuovo valore
 function scoreFly(side, pl, from, to) {
   const r = $('.hand-wrap', side).getBoundingClientRect(), t = $('.pts', pl).getBoundingClientRect();
+  side.classList.add('winner'); pl.classList.add('scored'); setTimeout(() => pl.classList.remove('scored'), 1600);
   const el = document.createElement('div'); el.className = 'plus'; el.textContent = '+1'; document.body.appendChild(el);
-  const x0 = r.left + r.width / 2 - 20, y0 = r.top + r.height / 2 - 16;
+  const x0 = r.left + r.width / 2 - 24, y0 = r.top + r.height / 2 - 20;
   el.style.left = x0 + 'px'; el.style.top = y0 + 'px';
   timeline()
-    .add(el, { opacity: [0, 1], translateY: [8, -12], duration: 260 })
-    .add(el, { translateX: t.left + t.width / 2 - 20 - x0, translateY: t.top + t.height / 2 - 16 - y0, scale: .7, duration: 520 }, '+=120')
-    .add(el, { opacity: 0, duration: 140 })
-    .then(() => el.remove());
+    .add(el, { opacity: [0, 1], scale: [0, 1.4], rotate: [-20, 0], translateY: [8, -24], duration: 420, ease: 'outBack(2)' })
+    .add(el, { translateX: t.left + t.width / 2 - 24 - x0, translateY: t.top + t.height / 2 - 20 - y0, scale: .8, duration: 480, ease: 'inOutCubic' }, '+=100')
+    .add(el, { opacity: 0, scale: 1.6, duration: 160 });
+  setTimeout(() => el.remove(), 1400);
   setTimeout(() => {
     const p = $('.pts', pl); tween(p, from, to, { duration: 300 });
-    anim(p, { scale: [1.25, 1], duration: 360 });
+    anim(p, { scale: [1.7, 1], duration: 600, ease: 'outElastic(1, .5)' });
     const bar = $('.bar i', pl); if (bar) bar.style.width = Math.min(100, to / G.target * 100) + '%';
   }, 860);
 }
@@ -228,9 +229,7 @@ async function resolve() {
   await sleep(250);
   const bub = (side, r) => { const el = $('.bubble', side); el.innerHTML = r.c ? `<b>${r.c}</b><small>${DIALETTO[r.c]}</small>` : `<b>…</b><small>${r.f ? 'zitto' : 'non ha buttato'}</small>`; el.classList.add('on'); };
   bub(L, a); play('pop');
-  if (a.c) say(PAROLA[a.c] + '!', 1.05);
   await sleep(320); bub(R, b); play('pop');
-  if (b.c) say(PAROLA[b.c] + '!', .8);
   await sleep(420);
 
   let winner = null, sum = null, txt;

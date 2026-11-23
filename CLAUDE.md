@@ -1,18 +1,22 @@
 # Giochi d'Ufficio: menu e giochi online
 
 Raccolta di giochi web per i colleghi di Factorial. Interfaccia, commenti e risposte all'utente: **in italiano**.
-Si gioca da computer con Chrome e, per menu, morra e briscola, **anche da telefono**: l'utente lo ha chiesto il 23/11/2026. Nerf e ItaliaGuessr restano da computer.
+Si gioca da computer con Chrome e, per menu, morra, briscola e Scarta!, **anche da telefono**: l'utente lo ha chiesto il 23/11/2026. Nerf e ItaliaGuessr restano da computer.
 
-## Stile grafico (direzione Unslop, 23/11/2026)
-- **Mondo**: il tavolino di un bar la sera.
-- **Colori**: neutri caldi (`--bg #161513`, `--card`, `--raised`), testo crema `#efe9de` e un solo accento, il rosso piacentino `#c9302c`. Il colore vero sta solo negli oggetti di gioco: carte, mani, mappa, bersaglio.
-- **Vietati**: niente gradienti, bagliori, testo sfumato, sfondi a macchie, emoji come icone, etichette maiuscole spaziate o punti esclamativi nell'interfaccia. Le grida in dialetto della morra fanno eccezione, perché sono contenuto del gioco.
-- **Tipografia**: Bricolage Grotesque a peso 400–600, e JetBrains Mono per codici, punteggi e numeri.
-- **Dettaglio firma**: i tasti (`kbd`, `.key`, le caselle del codice stanza).
+## Stile grafico: colorato e giocoso
+- Il 23/11/2026 è stata provata una revisione con Unslop, sobria e con neutri caldi. **All'utente non è piaciuta** ("troppo moscia, seria"): in una giornata grigia d'ufficio vuole colori, animazioni e interazioni.
+- Si è tornati allo stile di prima, tenendo alcune cose della prova:
+  - la versione per telefono;
+  - le schede del menu con l'oggetto vero del gioco, animato al passaggio del mouse;
+  - le icone Lucide;
+  - Anime.js.
+- **Colori**: sfondo scuro viola `--bg #0d0b1a` con macchie colorate animate (`.aurora`, da mettere in ogni pagina), pannelli di vetro, accenti rosa, arancio, verde acqua e viola, e un gradiente `--grad` per i pulsanti principali.
+- **Tipografia e movimento**: titoli a peso 800, rimbalzi (`--spring`).
 - **Icone**: Lucide inline, con `icon(nome)` in `shared/core.js`.
-- **Animazioni**: Anime.js 4.3.6 tramite `shared/motion.js` (`anim`, `timeline`, `enter`, `tween`). C'è una sola curva, `cubic-bezier(.22,1,.36,1)`, e "riduci movimento" viene rispettato.
+- **Animazioni**: Anime.js 4.3.6 tramite `shared/motion.js` (`anim`, `timeline`, `enter`, `tween`). Le curve più usate sono `outBack(2)` e `outElastic(1, .55)`.
   - La logica di gioco non deve mai aspettare la fine di un'animazione: con la scheda in background Anime.js si ferma. Per i tempi si usa `sleep`.
 - **Oggetti condivisi**: `shared/mano.js` (mano della morra) e `shared/italia.js` (sagoma dell'Italia per il menu).
+- **Voci della morra**: la voce sintetica del browser è stata tolta perché all'utente sembrava robotica. Non esistono banche di voci libere adatte (grida in dialetto). L'idea proposta è far registrare le grida ai colleghi stessi.
 Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salotto/CLAUDE.md`.
 
 ## Struttura del sito
@@ -82,6 +86,21 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
   - Animazioni WAAPI (funzione `fly`) per distribuire, giocare, raccogliere e pescare. Tasti 1–3 per giocare.
 - **Test**: `window.__briscola` espone lo stato.
 
+## Scarta! (`carte/`)
+- È il gioco di carte con meccaniche alla UNO, ma con nome e grafica originali (UNO è un marchio Mattel).
+- **Mazzo** (`carte/carte.js`, `carte/regole.js`): 108 carte.
+  - 4 colori, ciascuno con: uno 0, due copie da 1 a 9, due Salta, due Inverti e due +2;
+  - 4 jolly e 4 +4.
+  - Il codice di una carta è "colore valore . copia", per esempio `r7.1` o `wd4.2`.
+- **Grafica**: le carte hanno il corpo a righe e una finestra bianca squadrata al centro; i jolly hanno una girandola a 4 colori. Non c'è l'ovale inclinato di UNO.
+- **Regole**: da 2 a 10 giocatori.
+  - Impostazioni: computer aggiunti (0–5), accumulo di +2 e +4 (sì/no), tempo per mossa (20 s, 40 s o senza limite).
+  - Dopo aver pescato si può giocare solo la carta pescata, altrimenti si passa.
+  - "Ultima!": chi resta con una carta senza averlo detto può essere "Beccato!" dagli altri e pesca 2. Anche i computer beccano.
+- **Rete**: come la briscola. L'host decide; i client inviano `act {t: play|draw|pass|ultima|catch}`; lo stato pubblico `st` contiene in `h` le mani dei giocatori umani.
+- **Animazioni**: carte che volano, scritte grosse a centro schermo ("+4", "Salta!", "Inverti!", "Beccato!"), timbri sui giocatori e alone del colore attivo dietro al tavolo.
+- **Test**: `window.__scarta`. La simulazione di 500 partite in Node con le stesse regole non perde carte.
+
 ## Chi è online
 - Tutte le pagine (anche ItaliaGuessr e Nerf, con un piccolo modulo in fondo alla pagina) entrano nel canale presence `gu:hub` con `announce({game, code, status})`.
 - Il menu mostra "Online ora": cosa fa ciascuno, con i pulsanti "Entra"/"Guarda" per la sua stanza e 👋 per salutarlo.
@@ -93,9 +112,9 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
 - Nerf: "← Giochi" sulle schermate. Durante la partita è nascosto, ma si esce con Esc e "Torna ai giochi" in pausa e a fine partita.
 
 ## Prossimi passi
-1. **Estetica**: l'utente vuole un aspetto più moderno e minimale ma riconoscibile per tutti i giochi, e forse manderà repository o esempi da cui prendere spunto.
-2. **Revisione generale** di funzioni e grafica di tutti i giochi.
-3. **Scarta!**: meccaniche stile UNO, ma con nome e grafica originali, perché UNO è un marchio Mattel. Lobby da 2 a 10 giocatori.
+1. **Voci della morra**: decidere con l'utente. L'idea è far registrare le grida ai colleghi.
+2. **Briscola**: le grandi scritte di ogni presa ("+21", "Carico per…", "Liscio") e la vittoria con coriandoli sono fatte. I punti totali si vedono solo a fine partita: è una scelta dell'utente.
+3. **Revisione generale** di funzioni e grafica di tutti i giochi, compresi ItaliaGuessr e Nerf, da allineare allo stile colorato.
 4. **Multiplayer di Nerf**: in pausa per scelta dell'utente (23/11/2026). Il piano è in `nerf-salotto/CLAUDE.md`.
 
 ## Pubblicazione
