@@ -10,7 +10,7 @@ Risposte e commenti all'utente: **in italiano**. Il sito parla castigliano (pred
 - Font nel sito (`fonts/`): Fraunces (titoli), Archivo (testo), Caveat (scritte a mano). Three.js 0.160 in `vendor/`. Niente CDN.
 - **Bocadillo 3D** nella pagina iniziale (`hero3d.js`): ingredienti che cadono, piatto di ceramica con il bordo blu, "Otro" lo apre e cambia ripieno. Senza WebGL o con "riduci movimento" resta l'illustrazione SVG.
 - **Piatti illustrati** (`dishes.js`): ogni piatto è disegnato a strati SVG che si aprono in 3D al passaggio del mouse (o al tocco). Le composizioni sono nelle tabelle `BOCA`, `BIKINI`, `COMBO`, `DRINK`; un prodotto nuovo senza disegno usa un bocadillo generico.
-- Le foto delle due lavagne vere della porta sono in `img/` (le ha scattate l'utente).
+- Le foto delle lavagne sono state tolte dal sito su richiesta dell'utente (23/11/2026).
 
 ## Dati raccolti
 - Carta e prezzi: dalle due lavagne fotografate dall'utente (bocadillos interi e mezzi, supplemento queso/cebolla/pimiento +0,70 €, platos combinados).
