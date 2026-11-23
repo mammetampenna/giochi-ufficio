@@ -4,6 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nerf in Salotto</title>
+<script>
+// Porta della beta: il gioco è ancora in prova, si entra con una password.
+// Non è una vera protezione (il sito è statico e il codice è pubblico): tiene fuori solo chi passa per caso.
+// Per cambiare password: printf 'nuova' | shasum -a 256, e si mette qui l'impronta.
+(() => {
+  const HASH = '25ce99df5ea6c5009aeb79ddb938480ed8642191e8b34320d747f8f7eac4d9c0', KEY = 'nerf_beta';
+  try { if (localStorage.getItem(KEY) === HASH) return; } catch (e) {}
+  document.documentElement.classList.add('porta');
+  const css = document.createElement('style');
+  css.textContent = `html.porta body > *:not(#porta) { visibility: hidden !important; }
+  #porta { position: fixed; inset: 0; z-index: 99999; display: grid; place-items: center; padding: 16px; visibility: visible;
+    background: radial-gradient(60% 50% at 20% 20%, rgba(255,122,69,.35), transparent), radial-gradient(60% 50% at 85% 80%, rgba(59,130,246,.35), transparent), #0d0b1a;
+    font-family: Inter, system-ui, sans-serif; color: #fff; }
+  #porta .box { width: min(380px, 100%); text-align: center; padding: 28px 24px; border-radius: 24px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+    animation: portaIn .6s cubic-bezier(.34,1.56,.64,1) both; }
+  #porta .ico { font-size: 56px; display: inline-block; animation: portaDondola 2.4s ease-in-out infinite; }
+  #porta h1 { font: 400 30px Bungee, Inter, sans-serif; margin: 8px 0 4px; background: linear-gradient(90deg, #ff7a45, #ffb23f, #3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #porta .beta { display: inline-block; font: 800 12px Inter, sans-serif; padding: 4px 10px; border-radius: 99px; background: #ffb23f; color: #1a1030; transform: rotate(-4deg); }
+  #porta p { color: rgba(255,255,255,.75); margin: 14px 0 18px; line-height: 1.4; }
+  #porta input { width: 100%; box-sizing: border-box; font: 700 18px Inter, sans-serif; padding: 14px 16px; border-radius: 14px; border: 2px solid rgba(255,255,255,.15); background: rgba(0,0,0,.3); color: #fff; text-align: center; outline: none; }
+  #porta input:focus { border-color: #ff7a45; }
+  #porta button { width: 100%; margin-top: 12px; font: 800 17px Inter, sans-serif; padding: 14px; border: 0; border-radius: 14px; color: #fff; cursor: pointer; background: linear-gradient(90deg, #ff7a45, #ff5b7f); transition: transform .15s; }
+  #porta button:active { transform: scale(.96); }
+  #porta a { display: inline-block; margin-top: 16px; color: rgba(255,255,255,.6); text-decoration: none; }
+  #porta .no { animation: portaNo .4s; border-color: #ff5b5b; }
+  @keyframes portaIn { from { opacity: 0; transform: translateY(30px) scale(.9); } }
+  @keyframes portaDondola { 50% { transform: rotate(-12deg) translateY(-4px); } }
+  @keyframes portaNo { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }`;
+  document.head.appendChild(css);
+  const sha = async s => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map(b => b.toString(16).padStart(2, '0')).join('');
+  addEventListener('DOMContentLoaded', () => {
+    const el = document.createElement('div'); el.id = 'porta';
+    el.innerHTML = `<form class="box"><span class="ico">🔒</span><h1>Nerf in Salotto</h1><span class="beta">BETA</span>
+      <p>Il gioco è ancora in prova: per entrare serve la password.</p>
+      <input type="password" placeholder="Password" autocomplete="current-password" autofocus>
+      <button type="submit">Entra</button><a href="../">← Torna ai giochi</a></form>`;
+    document.body.appendChild(el);
+    const input = el.querySelector('input');
+    // i tasti scritti nella password non devono arrivare al gioco (Invio, WASD…)
+    ['keydown', 'keyup', 'keypress'].forEach(t => input.addEventListener(t, e => e.stopPropagation()));
+    el.querySelector('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      if (await sha(input.value.trim().toLowerCase()) === HASH) {
+        try { localStorage.setItem(KEY, HASH); } catch (e) {}
+        el.querySelector('.ico').textContent = '🔓';
+        el.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(1.08)' }], { duration: 350, easing: 'ease-in', fill: 'forwards' });
+        setTimeout(() => { el.remove(); document.documentElement.classList.remove('porta'); }, 340);
+      } else {
+        input.classList.remove('no'); void input.offsetWidth; input.classList.add('no'); input.select();
+      }
+    });
+  });
+})();
+</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@500;700;800&display=swap">
 <script type="importmap">

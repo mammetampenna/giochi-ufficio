@@ -14,6 +14,12 @@ Lingua dell'interfaccia e dei commenti: **italiano**.
   - `npm run prep` rigenera `assets/*_m.glb` dai pacchetti originali. Vanno scompattati in `assets_src/` (vedi sotto); i nomi delle cartelle sono quelli in `prep.mjs`.
 - `models/room_q.glb` è la scansione ridotta a ~81k triangoli con texture webp quantizzata (fatta con gltf-transform: weld, simplify, resize, webp, quantize).
 
+## Porta della beta (dal 23/11/2026)
+- Il gioco è in beta: all'apertura c'è una schermata con la password, uno `<script>` in testa a `game.html` (va ricostruito con `build.py`).
+- Nel codice c'è solo l'impronta SHA-256 della password (scritta in minuscolo), mai la password in chiaro: il repository è pubblico. La password la sa l'utente. Per cambiarla: `printf 'nuova' | shasum -a 256` e si sostituisce `HASH`.
+- Chi entra viene ricordato in `localStorage.nerf_beta`. Non è una vera protezione (sito statico, codice pubblico): tiene fuori solo chi passa per caso.
+- Quando la beta finisce si toglie lo script e il bollino "🔒 Beta" dalla scheda in `../index.html`.
+
 ## Struttura di game.html (un unico `<script type="module">`)
 - **Costanti** (scala S=12): GRAVITY -32, JUMP 11, WALK 7, RUN 12, RADIUS .35, HEIGHT 1.55, EYE 1.35.
 - **Jetpack**: FUEL_MAX 100, BURN 34, THRUST 52, MAX_UP 11, REGEN_AIR 12, REGEN_GROUND 38, REGEN_DELAY .6. In aria si tiene premuto Spazio (più di 0,22 s dopo il salto).

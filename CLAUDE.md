@@ -24,6 +24,7 @@ Si gioca da computer con Chrome e, per menu, morra, briscola e Scarta!, **anche 
 
   A ogni partita ognuno dei due giocatori pesca una voce a caso con `pickVoices(seed)`: il seme arriva con `start`, così tutti sentono le stesse. Le voci si ascoltano in `morra/prova-voci/`.
   La voce sintetica del browser e quelle del Mac sono state scartate perché robotiche. Registrare le grida dei colleghi resta un'idea rimandata.
+**Nerf è in beta (23/11/2026)**: si entra con una password, e nel menu ha il bollino "🔒 Beta". Dettagli in `nerf-salotto/CLAUDE.md`.
 Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salotto/CLAUDE.md`.
 
 ## Struttura del sito
