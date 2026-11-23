@@ -19,7 +19,9 @@ const backHTML = (cls = '') => `<div class="card ${cls}">${backSVG()}</div>`;
 
 /* ================= LOBBY ================= */
 mountLobby($('#lobby'), {
-  game: 'briscola', title: 'Briscola', subtitle: 'Carte piacentine. Uno contro uno o due contro due: i posti vuoti li prende il computer.',
+  game: 'briscola', title: 'Briscola', colors: ['#ffc53d', '#ff7a45'],
+  hero: `<div class="hero-fan">${['B1', 'C3', 'D1'].map(c => `<div class="pc">${cardSVG(obj(c))}</div>`).join('')}</div>`,
+  subtitle: 'Carte piacentine. Uno contro uno o due contro due: i posti vuoti li prende il computer.',
   min: 1, max: 4,
   settings: [{ key: 'mode', label: 'Partita', options: [{ v: '1v1', l: '1 contro 1' }, { v: '2v2', l: '2 contro 2 (a coppie)' }] }],
   defaults: { mode: '1v1' },

@@ -66,7 +66,9 @@ function shout(id, n) {
 
 /* ---------- lobby ---------- */
 const lobby = mountLobby($('#lobby'), {
-  game: 'morra', title: 'Morra calabrese', subtitle: 'Uno contro uno. Butta da 1 a 5 dita e chiama la somma: chi indovina fa punto.',
+  game: 'morra', title: 'Morra calabrese', colors: ['#ff5b7f', '#ffb23f'],
+  hero: `<div class="hero-hands"><div class="hw a">${HAND('#ff5b7f')}</div><div class="hw b">${HAND('#3fd6c6')}</div><span class="bub a">Setti!</span><span class="bub b">Tutta!</span></div>`,
+  subtitle: 'Uno contro uno. Butta da 1 a 5 dita e chiama la somma: chi indovina fa punto.',
   min: 2, max: 2,
   settings: [
     { key: 'target', label: 'Si vince a', options: [5, 11, 16, 21].map(v => ({ v, l: v + ' punti' })) },

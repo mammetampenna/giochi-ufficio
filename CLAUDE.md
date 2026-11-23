@@ -38,6 +38,9 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
   - `toast`, `sfx` (suoni WebAudio), `confetti`, `mountTopbar`;
   - stanze: `createRoom`, `findRoom`, `saveRoom`, `saveResult` e la classe `Room`.
 - `shared/lobby.js`: `mountLobby(root, opts)` è la lobby generica.
+  - Schermata d'apertura: illustrazione animata del gioco (`opts.hero`), titolo colorato, riquadri grandi "Crea una stanza" / "Contro il computer" / "Hai un codice?" (5 caselle), colori del gioco (`opts.colors`). Sfondo a tema con `floatBackdrop()` di core.js.
+  - Sala d'attesa costruita una volta e aggiornata a pezzi; ingressi con animazioni CSS (non Anime.js), così non restano mai invisibili.
+  - Supabase (`vendor/supabase.js`) e Anime.js (`vendor/anime.esm.min.js`) sono nel sito; Supabase si carica solo quando serve (`getSb()`).
   - Permette di creare una stanza, entrare con un codice o giocare contro il computer.
   - Mostra la lista dei presenti. Le impostazioni le modifica solo l'host; il pulsante Inizia invia `start` a tutti.
   - Il link della stanza è `?r=CODICE`.

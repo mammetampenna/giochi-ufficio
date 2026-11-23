@@ -18,7 +18,9 @@ const SPRING = 'outBack(2)';
 
 /* ================= LOBBY ================= */
 mountLobby($('#lobby'), {
-  game: 'carte', title: 'Scarta!', subtitle: 'Colori, numeri e carte cattive. Da 2 a 10 giocatori: vince chi resta senza carte.',
+  game: 'carte', title: 'Scarta!', colors: ['#3b82f6', '#2ecc71'],
+  hero: `<div class="hero-fan sc">${['r7.0', 'yd2.0', 'gskip.0', 'wwild.0'].map(c => `<div class="pc">${cardSVG(c)}</div>`).join('')}</div>`,
+  subtitle: 'Colori, numeri e carte cattive. Da 2 a 10 giocatori: vince chi resta senza carte.',
   min: 1, max: 10,
   settings: [
     { key: 'bots', label: 'Giocatori del computer', options: [0, 1, 2, 3, 5].map(v => ({ v, l: v ? '+' + v : 'nessuno' })) },
