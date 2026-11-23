@@ -16,7 +16,14 @@ Si gioca da computer con Chrome e, per menu, morra, briscola e Scarta!, **anche 
 - **Animazioni**: Anime.js 4.3.6 tramite `shared/motion.js` (`anim`, `timeline`, `enter`, `tween`). Le curve più usate sono `outBack(2)` e `outElastic(1, .55)`.
   - La logica di gioco non deve mai aspettare la fine di un'animazione: con la scheda in background Anime.js si ferma. Per i tempi si usa `sleep`.
 - **Oggetti condivisi**: `shared/mano.js` (mano della morra) e `shared/italia.js` (sagoma dell'Italia per il menu).
-- **Voci della morra**: la voce sintetica del browser è stata tolta perché all'utente sembrava robotica. Non esistono banche di voci libere adatte (grida in dialetto). L'idea proposta è far registrare le grida ai colleghi stessi.
+- **Voci della morra**: le grida ("Dui!" … "Tutta!") sono MP3 generati con il connettore ElevenLabs dell'utente (piano gratuito, modello `eleven_v4`, prompt `[shouting excitedly] Setti!`). Sono in `morra/voci/`, 4 voci da 9 file:
+  - `m` = Nenneri, uomo;
+  - `f` = Giusy, donna con accento siciliano;
+  - `a` = pap, anziano;
+  - `n` = Elettra, anziana.
+
+  A ogni partita ognuno dei due giocatori pesca una voce a caso con `pickVoices(seed)`: il seme arriva con `start`, così tutti sentono le stesse. Le voci si ascoltano in `morra/prova-voci/`.
+  La voce sintetica del browser e quelle del Mac sono state scartate perché robotiche. Registrare le grida dei colleghi resta un'idea rimandata.
 Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salotto/CLAUDE.md`.
 
 ## Struttura del sito
@@ -112,7 +119,6 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
 - Nerf: "← Giochi" sulle schermate. Durante la partita è nascosto, ma si esce con Esc e "Torna ai giochi" in pausa e a fine partita.
 
 ## Prossimi passi
-1. **Voci della morra**: decidere con l'utente. L'idea è far registrare le grida ai colleghi.
 2. **Briscola**: le grandi scritte di ogni presa ("+21", "Carico per…", "Liscio") e la vittoria con coriandoli sono fatte. I punti totali si vedono solo a fine partita: è una scelta dell'utente.
 3. **Revisione generale** di funzioni e grafica di tutti i giochi, compresi ItaliaGuessr e Nerf, da allineare allo stile colorato.
 4. **Multiplayer di Nerf**: in pausa per scelta dell'utente (23/11/2026). Il piano è in `nerf-salotto/CLAUDE.md`.

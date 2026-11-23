@@ -22,11 +22,30 @@ try { soundOn = localStorage.getItem('morra_sound') !== '0'; } catch (e) {}
 const sb = $('#sound'); sb.innerHTML = icon(soundOn ? 'sound' : 'mute');
 sb.onclick = () => { soundOn = !soundOn; sb.innerHTML = icon(soundOn ? 'sound' : 'mute'); try { localStorage.setItem('morra_sound', soundOn ? '1' : '0'); } catch (e) {} };
 const play = k => soundOn && sfx(k);
-function say(text, pitch = 1) {
-  if (!soundOn || !window.speechSynthesis) return;
-  const u = new SpeechSynthesisUtterance(text); u.lang = 'it-IT'; u.rate = 1.25; u.pitch = pitch;
-  const v = speechSynthesis.getVoices().find(v => v.lang.startsWith('it')); if (v) u.voice = v;
-  speechSynthesis.speak(u);
+// grida generate con ElevenLabs, quattro voci: m = uomo, f = donna (accento siciliano), a = anziano, n = anziana.
+// A ogni partita ognuno dei due giocatori pesca una voce a caso; il seme arriva con "start", così tutti sentono le stesse voci.
+const VOICE_SETS = ['m', 'f', 'a', 'n'];
+const VOX = {}; let vctx;
+function pickVoices(seed) {
+  let x = seed ?? (Math.random() * 2 ** 32) >>> 0;
+  const rnd = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 2 ** 32; };
+  const i = rnd() * 4 | 0; let j = rnd() * 3 | 0; if (j >= i) j++;
+  return [VOICE_SETS[i], VOICE_SETS[j]];
+}
+function loadVoices(sets) {
+  if (!vctx) { try { vctx = new AudioContext(); } catch (e) { return; } }
+  for (const s of sets) for (let n = 2; n <= 10; n++) {
+    if (VOX[s + n]) continue;
+    VOX[s + n] = 'loading';
+    fetch(`voci/${s}${n}.mp3`).then(r => r.arrayBuffer()).then(b => vctx.decodeAudioData(b)).then(buf => { VOX[s + n] = buf; }).catch(() => { delete VOX[s + n]; });
+  }
+}
+function shout(id, n) {
+  if (!soundOn || !n || !vctx) return;
+  const buf = VOX[(G.voices?.[G.players.indexOf(id)] || 'm') + n]; if (!buf || buf === 'loading') return;
+  if (vctx.state === 'suspended') vctx.resume();
+  const src = vctx.createBufferSource(), g = vctx.createGain(); g.gain.value = 1.3;
+  src.buffer = buf; src.connect(g); g.connect(vctx.destination); src.start();
 }
 
 /* ---------- lobby ---------- */
@@ -44,7 +63,7 @@ const lobby = mountLobby($('#lobby'), {
     // se la partita è già in corso chiedo lo stato all'host (rientro o spettatore)
     if (r.row.status === 'playing') r.send('hello', {});
   },
-  onStart: (r, settings, players) => { room = r; begin(settings, players, r.members); },
+  onStart: (r, settings, players, d) => { room = r; G.voices = pickVoices(d?.seed); begin(settings, players, r.members); },
 });
 
 function wire(r) {
@@ -53,10 +72,10 @@ function wire(r) {
   r.on('reveal', (d, from) => onReveal(d, from));
   r.on('over', d => onOver(d));
   r.on('hello', () => { if (r.isHost && G.players.length) r.send('state', snapshot()); });
-  r.on('state', d => { if (!G.players.length) { r.started = true; Object.assign(G, { info: d.info, scores: d.scores, n: d.n }); begin(d.settings, d.players, null, true); } });
+  r.on('state', d => { if (!G.players.length) { r.started = true; Object.assign(G, { info: d.info, scores: d.scores, n: d.n, voices: d.voices }); begin(d.settings, d.players, null, true); } });
   r.on('members', () => checkPresence());
 }
-function snapshot() { return { players: G.players, info: G.info, scores: G.scores, n: G.n, settings: { target: G.target, speed: G.T } }; }
+function snapshot() { return { players: G.players, info: G.info, scores: G.scores, n: G.n, voices: G.voices, settings: { target: G.target, speed: G.T } }; }
 
 /* ---------- partita contro il computer: una "stanza" finta tutta locale ---------- */
 function startSolo() {
@@ -67,13 +86,13 @@ function startSolo() {
     send() {}, both(t, d) { this.emit(t, d, me.id); }, member(id) { return id === BOT.id ? BOT : me; },
   };
   wire(room);
-  room.on('start', d => begin(d.settings, d.players, room.members));
+  room.on('start', d => { G.voices = pickVoices(d.seed); begin(d.settings, d.players, room.members); });
   room.both('start', { settings: { target: 11, speed: 5 }, players: [me.id, BOT.id] });
 }
 
 /* ---------- inizio partita ---------- */
 function begin(settings, players, members, resume) {
-  me = getProfile(); G.lastMsg = performance.now() + 2000;
+  me = getProfile(); G.lastMsg = performance.now() + 2000; G.voices ||= pickVoices(); loadVoices(G.voices);
   G.players = players; G.target = settings.target; G.T = settings.speed; G.over = false;
   if (members) members.forEach(m => { if (players.includes(m.id)) G.info[m.id] = { id: m.id, name: m.name, avatar: m.avatar, color: m.color }; });
   if (!resume) { G.scores = Object.fromEntries(players.map(p => [p, 0])); G.n = 0; }
@@ -228,8 +247,8 @@ async function resolve() {
   play('thump');
   await sleep(250);
   const bub = (side, r) => { const el = $('.bubble', side); el.innerHTML = r.c ? `<b>${r.c}</b><small>${DIALETTO[r.c]}</small>` : `<b>…</b><small>${r.f ? 'zitto' : 'non ha buttato'}</small>`; el.classList.add('on'); };
-  bub(L, a); play('pop');
-  await sleep(320); bub(R, b); play('pop');
+  bub(L, a); play('pop'); shout(G.left, a.c);
+  await sleep(a.c && b.c && soundOn ? 650 : 320); bub(R, b); play('pop'); shout(G.right, b.c);
   await sleep(420);
 
   let winner = null, sum = null, txt;
@@ -285,7 +304,7 @@ function onOver(d) {
   const again = $('.again', o);
   if (again) again.onclick = () => {
     if (!room.solo) saveRoom(room.code, { status: 'playing' });
-    room.both('start', { settings: { target: G.target, speed: G.T }, players: G.players });
+    room.both('start', { settings: { target: G.target, speed: G.T }, players: G.players, seed: crypto.getRandomValues(new Uint32Array(1))[0] });
   };
 }
 
