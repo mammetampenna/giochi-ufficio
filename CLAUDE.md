@@ -1,6 +1,18 @@
 # Giochi d'Ufficio: menu e giochi online
 
-Raccolta di giochi web per i colleghi di Factorial. Si gioca **solo da computer, con Chrome**. Interfaccia, commenti e risposte all'utente: **in italiano**.
+Raccolta di giochi web per i colleghi di Factorial. Interfaccia, commenti e risposte all'utente: **in italiano**.
+Si gioca da computer con Chrome e, per menu, morra e briscola, **anche da telefono**: l'utente lo ha chiesto il 23/11/2026. Nerf e ItaliaGuessr restano da computer.
+
+## Stile grafico (direzione Unslop, 23/11/2026)
+- **Mondo**: il tavolino di un bar la sera.
+- **Colori**: neutri caldi (`--bg #161513`, `--card`, `--raised`), testo crema `#efe9de` e un solo accento, il rosso piacentino `#c9302c`. Il colore vero sta solo negli oggetti di gioco: carte, mani, mappa, bersaglio.
+- **Vietati**: niente gradienti, bagliori, testo sfumato, sfondi a macchie, emoji come icone, etichette maiuscole spaziate o punti esclamativi nell'interfaccia. Le grida in dialetto della morra fanno eccezione, perché sono contenuto del gioco.
+- **Tipografia**: Bricolage Grotesque a peso 400–600, e JetBrains Mono per codici, punteggi e numeri.
+- **Dettaglio firma**: i tasti (`kbd`, `.key`, le caselle del codice stanza).
+- **Icone**: Lucide inline, con `icon(nome)` in `shared/core.js`.
+- **Animazioni**: Anime.js 4.3.6 tramite `shared/motion.js` (`anim`, `timeline`, `enter`, `tween`). C'è una sola curva, `cubic-bezier(.22,1,.36,1)`, e "riduci movimento" viene rispettato.
+  - La logica di gioco non deve mai aspettare la fine di un'animazione: con la scheda in background Anime.js si ferma. Per i tempi si usa `sleep`.
+- **Oggetti condivisi**: `shared/mano.js` (mano della morra) e `shared/italia.js` (sagoma dell'Italia per il menu).
 Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salotto/CLAUDE.md`.
 
 ## Struttura del sito
