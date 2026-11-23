@@ -44,7 +44,7 @@ Lingua dell'interfaccia e dei commenti: **italiano**. Per ora è considerato **f
 - **Tabelle**: areas (colonna provinces), area_catalog, comuni, places, players, games, rounds, rooms, room_members, room_rounds, room_guesses.
 - **Viste**: leaderboard, room_standings.
 - Al 23/11/2026: 7856 comuni, 303 luoghi, 130 aree nel catalogo, 5 giocatori, 46 partite, 10 stanze.
-- **Da fare**: eliminare la funzione RPC `seed_reference(part, data)`, che esiste ancora. I dati sono già caricati e la funzione permette scritture a chiunque abbia la chiave pubblica. Poi togliere da app.js il codice di seed (intorno a `rpc('seed_reference'`, ~riga 1427) e lanciare `get_advisors` per la sicurezza.
+- Fatto il 23/11/2026: eliminata la funzione RPC `seed_reference` e tolto il codice di seed da app.js. Gli advisor di sicurezza non segnalano problemi.
 
 ## Storia e preferenze dell'utente
 - I fornitori di tile della mappa a volte si bloccavano: ora c'è una prova in parallelo con alternative di riserva.

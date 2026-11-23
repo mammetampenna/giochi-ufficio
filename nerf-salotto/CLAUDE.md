@@ -55,12 +55,13 @@ I pacchetti originali li ha l'utente in zip. Per rigenerare gli asset vanno scom
 Nel pacchetto Base Characters mancano due texture che il glTF richiede: copiare `T_Hair_1_Normal.png` come `T_Hair_1_Normal_png.png` e `T_Eye_Normal.png` come `T_Eye_Normal_png.png`.
 
 ## Da fare (in ordine di priorità)
+In pausa dal 23/11/2026: l'utente ha dato la precedenza a morra, briscola e Scarta! (vedi `../CLAUDE.md`). Il multiplayer, quando si riprende, userà `shared/core.js` (classe `Room`) e la tabella `game_rooms` con game='nerf'.
 1. **Multiplayer** con Supabase Realtime: stesso progetto Supabase di ItaliaGuessr, stanze con codice come in ItaliaGuessr. Modalità:
    - **Ultimo in piedi**, con potenziamenti (usare il Sci-Fi Essentials Kit: casse, kit medici, munizioni, granate, mine);
    - **Caccia al tesoro condivisa**: si spara agli oggetti per raccoglierli;
    - **Caccia al tesoro a tempo**: ognuno nella sua copia della mappa, con gli stessi oggetti, vince il tempo migliore.
 2. **Ufficio low poly**: la scansione dell'ufficio richiede troppo tempo, quindi verrà rifatto low poly. Se lo si scansiona: chiedere il permesso ed evitare schermi, documenti e colleghi.
-3. Un hub con almeno 3 giochi: ItaliaGuessr, Nerf, e un terzo da decidere. Idee:
+3. ~~Un hub~~ fatto: `../index.html`. Altri giochi: ItaliaGuessr, Nerf, e un terzo da decidere. Idee:
    - una gara su Street View;
    - una guerra di carri armati nell'ufficio scansionato.
 4. Rifiniture:
