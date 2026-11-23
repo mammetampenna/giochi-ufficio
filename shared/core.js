@@ -15,6 +15,8 @@ export const GAMES = {
   briscola: { name: 'Briscola', path: 'briscola/' },
   carte: { name: 'Scarta!', path: 'carte/' },
   nerf: { name: 'Nerf in Salotto', path: 'nerf-salotto/nerf-salotto.html' },
+  guessr: { name: 'ItaliaGuessr', path: 'italia-guessr/italia-guessr.html' },
+  menu: { name: 'Menu', path: '' },
 };
 // percorso relativo alla radice del sito, valido sia dal menu sia dai giochi
 export function siteRoot() { return new URL('..', import.meta.url).href; }
@@ -159,6 +161,13 @@ let ac;
 export function sfx(kind) {
   try {
     ac ||= new AudioContext();
+    if (kind === 'card') { // fruscio di carta: rumore filtrato brevissimo
+      const t = ac.currentTime, len = ac.sampleRate * .09, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2;
+      const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2600 + Math.random() * 800; f.Q.value = .8; g.gain.value = .35;
+      src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); return;
+    }
     const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
     o.connect(g); g.connect(ac.destination);
     const P = {
@@ -202,4 +211,48 @@ export function mountTopbar({ back = true } = {}) {
   draw(); window.addEventListener('profile', draw);
   document.body.prepend(bar);
   return bar;
+}
+
+/* ---------- chi è online (canale comune a tutte le pagine) ---------- */
+let hub = null, hubInfo = {}, online = [];
+export function announce(info = {}) {
+  hubInfo = { ...hubInfo, ...info };
+  const p = getProfile();
+  if (!p.name) return;
+  if (!hub) {
+    hub = sb.channel('gu:hub', { config: { presence: { key: p.id }, broadcast: { self: false } } });
+    hub.on('presence', { event: 'sync' }, () => {
+      online = Object.values(hub.presenceState()).map(a => a.sort((x, y) => y.at - x.at)[0]);
+      window.dispatchEvent(new CustomEvent('online', { detail: online }));
+    });
+    hub.on('broadcast', { event: 'ping' }, ({ payload }) => { if (payload.to === getProfile().id) showPing(payload); });
+    hub.subscribe(st => { if (st === 'SUBSCRIBED') track(); });
+    window.addEventListener('profile', () => track());
+  } else track();
+}
+function track() { const p = getProfile(); if (hub && p.name) hub.track({ id: p.id, name: p.name, avatar: p.avatar, color: p.color, ...hubInfo, at: Date.now() }).catch(() => {}); }
+export const onlineList = () => online;
+export const describe = o => {
+  const g = GAMES[o.game]?.name;
+  if (!o.game || o.game === 'menu') return 'nel menu';
+  if (o.status === 'lobby') return `aspetta giocatori · ${g}`;
+  if (o.status === 'playing') return `sta giocando a ${g}`;
+  if (o.status === 'solo') return `${g} contro il computer`;
+  return `su ${g}`;
+};
+// invito o saluto a un collega: arriva come avviso in qualunque pagina stia guardando
+export function ping(to, kind, extra = {}) {
+  const p = getProfile();
+  hub?.send({ type: 'broadcast', event: 'ping', payload: { to, kind, from: { id: p.id, name: p.name, avatar: p.avatar, color: p.color }, ...extra } });
+}
+function showPing(d) {
+  const box = document.createElement('div');
+  box.className = 'ping glass';
+  const url = d.kind === 'invite' && GAMES[d.game] ? siteRoot() + GAMES[d.game].path + '?r=' + d.code : null;
+  box.innerHTML = `${avatarHTML(d.from)}<div><b>${esc(d.from.name)}</b><span>${url ? `ti invita a ${esc(GAMES[d.game].name)}` : 'ti saluta 👋'}</span></div>
+    ${url ? `<a class="btn primary small" href="${url}">Entra</a>` : ''}<button class="btn small x">${url ? 'No grazie' : 'Ciao!'}</button>`;
+  document.body.appendChild(box); sfx('win');
+  const close = () => { box.classList.add('out'); setTimeout(() => box.remove(), 300); };
+  box.querySelector('.x').onclick = () => { if (!url && d.kind === 'wave') ping(d.from.id, 'wave-back'); close(); };
+  setTimeout(close, url ? 30000 : 8000);
 }

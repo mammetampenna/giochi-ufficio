@@ -77,16 +77,15 @@
   @keyframes shout { 0%, 30% { transform: scale(0) rotate(-10deg); opacity: 0; } 38%, 60% { transform: scale(1) rotate(-4deg); opacity: 1; } 70%, 100% { transform: scale(.6); opacity: 0; } }
 
   /* Briscola: ventaglio di carte */
-  .fan { position: relative; width: 120px; height: 150px; }
+  .fan { position: relative; width: 120px; height: 140px; margin-top: -34px; }
   .fan .pc {
-    position: absolute; left: 30px; top: 10px; width: 84px; height: 130px; border-radius: 9px; background: #fbf6ea; border: 3px solid #fff;
-    box-shadow: 0 10px 25px rgba(0,0,0,.35); transform-origin: 50% 120%; transition: transform .6s var(--spring); display: grid; place-items: center;
+    position: absolute; left: 22px; top: 0; width: 78px; height: 133px;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,.4)); transform-origin: 50% 120%; transition: transform .6s var(--spring);
   }
-  .fan .pc svg { width: 54px; height: 54px; }
+  .fan .pc svg { width: 100%; height: 100%; display: block; }
   .fan .pc:nth-child(1) { transform: rotate(-22deg); } .fan .pc:nth-child(2) { transform: rotate(0); } .fan .pc:nth-child(3) { transform: rotate(22deg); }
   .card:hover .fan .pc:nth-child(1) { transform: rotate(-36deg) translateY(-8px); } .card:hover .fan .pc:nth-child(2) { transform: translateY(-16px); }
   .card:hover .fan .pc:nth-child(3) { transform: rotate(36deg) translateY(-8px); }
-  .fan .pc.back { background: repeating-linear-gradient(45deg, #b0202a 0 6px, #8d1820 6px 12px); }
 
   /* Scarta!: carte colorate che girano */
   .orbit { position: relative; width: 170px; height: 170px; animation: spin 14s linear infinite; }
@@ -117,6 +116,10 @@
   @keyframes dart { 0%, 20% { transform: translateX(-140px); opacity: 0; } 50% { transform: translateX(80px); opacity: 1; } 90% { transform: translateX(80px); opacity: 1; } 100% { opacity: 0; transform: translateX(80px); } }
   .cross { position: absolute; inset: -16px; border: 2px dashed rgba(255,255,255,.4); border-radius: 50%; animation: spin 10s linear infinite; }
 
+  .online { padding: 14px 16px; margin: -8px 0 22px; animation: fadeUp .8s .8s var(--ease) backwards; }
+  .online .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .online .hd small { color: var(--dim); }
+  .online .empty { color: var(--dim); font-size: 14px; }
   footer { margin-top: 40px; color: var(--dim); font-size: 13px; text-align: center; opacity: .7; }
   @media (max-width: 900px) { .card, .card.wide, .card.full { grid-column: span 3; } }
   @media (max-width: 620px) { .card, .card.wide, .card.full { grid-column: span 6; } .joinbox { margin-left: 0; } }
@@ -147,6 +150,11 @@
     </div>
   </section>
 
+  <section class="online glass" id="online">
+    <div class="hd"><span class="dot"></span><b>Online ora</b><small id="onCount"></small></div>
+    <div class="people" id="people"></div>
+  </section>
+
   <section class="grid" id="grid">
     <a class="card wide" href="morra/" data-game="morra" style="--c1:#ff5b7f;--c2:#ffb23f">
       <div class="scene"><div class="fists"><span>🤜</span><span>🤛</span></div><div class="shout">Setti!</div><div class="shout b">Tutta!</div></div>
@@ -155,13 +163,13 @@
       <p>Butta le dita, grida il numero. Chi indovina la somma fa punto.</p>
       <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
     </a>
-    <div class="card wide soon" data-game="briscola" style="--c1:#e9b42c;--c2:#d8461f">
-      <div class="ribbon">PRESTO</div>
-      <div class="scene"><div class="fan"><div class="pc back"></div><div class="pc"><svg><use href="#s-coppe"/></svg></div><div class="pc"><svg><use href="#s-denari"/></svg></div></div></div>
-      <div class="tags"><span class="tag live">● Online</span><span class="tag">carte piacentine</span></div>
-      <h2>Briscola</h2>
-      <p>Il classico, con le carte di casa. Uno contro uno o a coppie.</p>
-    </div>
+    <a class="card wide" href="briscola/" data-game="briscola" style="--c1:#e9b42c;--c2:#d8461f">
+      <div class="scene"><div class="fan" id="fan"></div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">1 contro 1 · 2 contro 2</span><span class="tag">vs computer</span></div>
+      <h2 class="t">Briscola</h2>
+      <p>Il classico, con le carte piacentine. Uno contro uno o a coppie.</p>
+      <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
     <div class="card soon" data-game="carte" style="--c1:#3b82f6;--c2:#2ecc71">
       <div class="ribbon">PRESTO</div>
       <div class="scene"><div class="orbit"><b>7</b><b>+2</b><b>↺</b><b>⊘</b></div></div>
@@ -188,9 +196,36 @@
 </main>
 
 <script type="module">
-import { $, $$, mountTopbar, getProfile, findRoom, GAMES, toast, sfx } from './shared/core.js';
+import { $, $$, mountTopbar, getProfile, editProfile, findRoom, GAMES, toast, sfx, announce, onlineList, describe, ping, avatarHTML, esc } from './shared/core.js';
 
 mountTopbar({ back: false });
+
+// ventaglio della briscola con le carte vere del mazzo
+import('./shared/piacentine.js').then(m => {
+  m.injectDefs();
+  $('#fan').innerHTML = `<div class="pc">${m.backSVG()}</div><div class="pc">${m.cardSVG({ s: 'C', r: 1 })}</div><div class="pc">${m.cardSVG({ s: 'D', r: 10 })}</div>`;
+});
+
+// colleghi online: chi c'è, cosa fa, e un pulsante per entrare nella sua stanza o salutarlo
+announce({ game: 'menu', code: null, status: 'menu' });
+function drawOnline() {
+  const me = getProfile(), list = onlineList().filter(o => o.id !== me.id);
+  $('#onCount').textContent = list.length ? `${list.length} collegh${list.length === 1 ? 'a' : 'i'}` : '';
+  if (!me.name) {
+    $('#people').innerHTML = '<button class="btn small" id="setName">Scegli il tuo nome per farti vedere dai colleghi</button>';
+    $('#setName').onclick = () => editProfile().then(() => { announce(); drawOnline(); });
+    return;
+  }
+  $('#people').innerHTML = list.length ? list.map(o => {
+    const path = GAMES[o.game]?.path, join = o.code && path && (o.status === 'lobby' || o.status === 'playing');
+    return `<div class="person">${avatarHTML(o)}<div class="t"><b>${esc(o.name)}</b><small>${esc(describe(o))}</small></div>
+      ${join ? `<a class="act go" href="${path}?r=${o.code}">${o.status === 'lobby' ? 'Entra' : 'Guarda'}</a>` : ''}<button class="act" data-wave="${o.id}" title="Saluta">👋</button></div>`;
+  }).join('') : '<span class="empty">Per ora ci sei solo tu. Crea una stanza e invita qualcuno!</span>';
+  $$('[data-wave]').forEach(b => b.onclick = () => { ping(b.dataset.wave, 'wave'); b.textContent = '✓'; b.disabled = true; sfx('pop'); });
+}
+window.addEventListener('online', drawOnline);
+window.addEventListener('profile', () => { announce(); drawOnline(); });
+drawOnline();
 
 // titolo con lettere che salgono una alla volta
 const words = [['Giochi', ''], ["d'Ufficio", 'grad']];
@@ -212,7 +247,7 @@ $$('.card').forEach((c, k) => {
 // i giochi nuovi condividono la transizione del titolo; gli altri hanno un'uscita animata
 $$('a.card').forEach(c => c.addEventListener('click', e => {
   const g = c.dataset.game;
-  if (g === 'morra') { $('.t', c).style.viewTransitionName = 'title-' + g; return; }
+  if (g === 'morra' || g === 'briscola') { $('.t', c).style.viewTransitionName = 'title-' + g; return; }
   e.preventDefault(); c.classList.add('chosen'); $('#grid').classList.add('leaving');
   setTimeout(() => location.href = c.href, 420);
 }));

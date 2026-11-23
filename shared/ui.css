@@ -166,3 +166,19 @@ input { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+a.btn { text-decoration: none; color: inherit; }
+
+/* avvisi di invito e saluto */
+.ping { position: fixed; right: 18px; bottom: 18px; z-index: 120; display: flex; align-items: center; gap: 12px; padding: 12px 14px; max-width: calc(100% - 36px);
+  animation: pingIn .55s var(--spring); box-shadow: 0 20px 50px -10px rgba(0,0,0,.6); background: rgba(30,26,50,.85); }
+.ping > div { display: grid; } .ping span { color: var(--dim); font-size: 14px; }
+.ping.out { animation: toastOut .3s var(--ease) forwards; }
+@keyframes pingIn { from { transform: translateX(120%) rotate(6deg); } }
+/* colleghi online */
+.people { display: flex; flex-wrap: wrap; gap: 8px; }
+.person { display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 6px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); animation: popIn .4s var(--spring) backwards; }
+.person .t { display: grid; line-height: 1.15; } .person .t small { color: var(--dim); font-size: 12px; }
+.person .act { padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--panel2); transition: transform .2s var(--spring); }
+.person .act:hover { transform: scale(1.08); }
+.person .act.go { background: linear-gradient(135deg, var(--acc), var(--acc2)); color: #1a0d14; text-decoration: none; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px rgba(63,220,138,.25); display: inline-block; }

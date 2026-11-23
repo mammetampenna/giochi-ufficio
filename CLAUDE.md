@@ -50,16 +50,44 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
 - **Contro il computer**: "Compare Turi" sceglie a caso, con una stanza finta tutta locale.
 - **Test**: `window.__morra` espone lo stato della partita.
 
-## Prossimi giochi (in ordine)
-1. **Briscola**: l'utente vuole le **carte piacentine** il più fedeli possibile.
-   - Va ancora deciso da dove prenderle. Opzioni: immagini con licenza libera (per esempio da Wikimedia Commons), da verificare e scaricare **solo dopo il permesso dell'utente**, oppure un ridisegno in SVG nello stile piacentino tradizionale.
-   - Modalità: 1 contro 1, 2 contro 2 e contro il computer.
-   - Le carte nascoste: ogni giocatore riceve solo la propria mano.
-2. **Scarta!**: meccaniche stile UNO, ma con nome e grafica originali, perché UNO è un marchio Mattel. Lobby da 2 a 10 giocatori.
-3. **Multiplayer di Nerf**: in pausa per scelta dell'utente (23/11/2026). Il piano è in `nerf-salotto/CLAUDE.md`.
+## Briscola (`briscola/`)
+- **Carte**: `shared/piacentine.js` ridisegna il mazzo piacentino in SVG, in stile piatto e minimale (scelta dell'utente: "visibilmente piacentine ma moderne").
+  - Semi come `<symbol>` (`injectDefs()`), figure a doppia testa (8 fante, 9 cavallo, 10 re), spade ricurve e bastoni incrociati a X.
+  - `cardSVG({s, r})` e `backSVG()`. L'anteprima di tutto il mazzo è in `briscola/mazzo.html`; con `?c=D9,S8` mostra solo quelle carte, in grande.
+- **Regole** (`briscola/regole.js`): carte come stringhe `'D1'..'B10'`.
+  - Punti: A 11, 3 10, R 4, C 3, F 2. Forza: A > 3 > R > C > F > 7 … 2.
+  - La briscola sta sotto il mazzo e viene pescata per ultima. Vince chi fa più di 60 punti; 60 a 60 è patta.
+  - L'IA `botChoose` batte un giocatore casuale circa 5 volte su 6 (simulazione di 4000 partite).
+- **Rete**: decide tutto l'host. I client inviano solo `play {c}`; l'host invia `st` con lo stato pubblico.
+  - Le mani dei giocatori umani viaggiano nel campo `h` dello stesso messaggio: chi apre gli strumenti di Chrome le vede, ed è accettato.
+  - L'host salva lo stato completo in `game_rooms.state`; se esce, il nuovo host lo ricarica (`takeOver`).
+  - Chi è offline da più di 20 s quando tocca a lui viene sostituito dal computer.
+- **Partite**:
+  - 1 contro 1 oppure 2 contro 2 (posti 0 e 2 contro 1 e 3); i posti vuoti li prende il computer.
+  - Il giro va in senso antiorario: il giocatore successivo è a destra.
+  - Con la rivincita si cambia chi apre e si tiene il conto delle partite vinte.
+- **Grafica del tavolo**: niente panno verde. Il tavolo è un piano di vetro scuro sopra lo sfondo comune, con un alone del colore della briscola (`#board[data-bris]`).
+  - Animazioni WAAPI (funzione `fly`) per distribuire, giocare, raccogliere e pescare. Tasti 1–3 per giocare.
+- **Test**: `window.__briscola` espone lo stato.
+
+## Chi è online
+- Tutte le pagine (anche ItaliaGuessr e Nerf, con un piccolo modulo in fondo alla pagina) entrano nel canale presence `gu:hub` con `announce({game, code, status})`.
+- Il menu mostra "Online ora": cosa fa ciascuno, con i pulsanti "Entra"/"Guarda" per la sua stanza e 👋 per salutarlo.
+- La lobby mostra "Invita chi è online". `ping(id, 'invite'|'wave')` fa comparire un avviso con il pulsante Entra in qualunque pagina stia guardando il destinatario.
+
+## Uscita verso il menu
+- Morra e briscola: c'è il pulsante "Giochi" nella barra in alto.
+- ItaliaGuessr: "← Giochi" nel menu del gioco e 🏠 nell'HUD.
+- Nerf: "← Giochi" sulle schermate. Durante la partita è nascosto, ma si esce con Esc e "Torna ai giochi" in pausa e a fine partita.
+
+## Prossimi passi
+1. **Estetica**: l'utente vuole un aspetto più moderno e minimale ma riconoscibile per tutti i giochi, e forse manderà repository o esempi da cui prendere spunto.
+2. **Revisione generale** di funzioni e grafica di tutti i giochi.
+3. **Scarta!**: meccaniche stile UNO, ma con nome e grafica originali, perché UNO è un marchio Mattel. Lobby da 2 a 10 giocatori.
+4. **Multiplayer di Nerf**: in pausa per scelta dell'utente (23/11/2026). Il piano è in `nerf-salotto/CLAUDE.md`.
 
 ## Pubblicazione
 - C'è un repository git locale (ramo `main`).
-- Il piano è GitHub Pages. La CLI `gh` è installata con Homebrew, ma l'utente deve ancora fare `gh auth login` e decidere se il repo sarà pubblico o privato.
+- Repository pubblico `mammetampenna/giochi-ufficio`, sito su GitHub Pages: https://mammetampenna.github.io/giochi-ufficio/ (si aggiorna da solo a ogni push su main, in circa un minuto). `gh` è autenticato.
 - Nota: GitHub Pages gratuito richiede un repo pubblico, e il repo contiene la chiave Google Maps di ItaliaGuessr. Conviene limitarla ai domini autorizzati nella console di Google.
 - `nerf-salotto/scan/` e `assets_src/` sono esclusi da git perché pesanti e personali.

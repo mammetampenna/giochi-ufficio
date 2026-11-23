@@ -59,6 +59,8 @@ canvas{display:block}
 .card p{opacity:.85;line-height:1.5;margin:10px 0}
 .btn{font-family:Bungee;font-size:20px;border:0;border-radius:14px;padding:14px 30px;cursor:pointer;background:var(--o);color:#fff;box-shadow:0 5px 0 #a34500;margin-top:14px}
 .btn:active{transform:translateY(3px);box-shadow:0 2px 0 #a34500}
+#home{position:fixed;top:14px;left:14px;z-index:30;font:600 14px system-ui,sans-serif;color:#fff;text-decoration:none;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15)}#home:hover{background:rgba(0,0,0,.7)}#hud:not(.hidden)~#home{display:none}
+a.btn{display:inline-block;text-decoration:none}
 .btn.sec{background:#2a3138;box-shadow:0 5px 0 #11161a;font-size:15px;padding:10px 20px}
 .keys{display:grid;grid-template-columns:auto auto;gap:6px 18px;justify-content:center;font-size:13.5px;margin:16px 0 4px;text-align:left}
 .keys b{display:inline-block;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.14);font-size:12px;margin-right:6px}
@@ -131,12 +133,12 @@ body.zoom #cross{display:none}
   </div>
 </div>
 <div class="screen hidden" id="pause">
-  <div class="card"><h1 style="font-size:40px">PAUSA</h1><p>Clicca per tornare in gioco.</p><button class="btn" id="resume">RIPRENDI</button><br><button class="btn sec" id="restart">Ricomincia</button></div>
+  <div class="card"><h1 style="font-size:40px">PAUSA</h1><p>Clicca per tornare in gioco.</p><button class="btn" id="resume">RIPRENDI</button><br><button class="btn sec" id="restart">Ricomincia</button><br><a class="btn sec" href="../">← Torna ai giochi</a></div>
 </div>
 <div class="screen hidden" id="end">
   <div class="card"><h1 style="font-size:40px">FINITO!</h1>
     <div class="stats"><div><b id="eTime">0:00</b><small>tempo</small></div><div><b id="eShots">0</b><small>colpi sparati</small></div><div><b id="eAcc">0%</b><small>precisione</small></div></div>
-    <p id="eBest"></p><button class="btn" id="again">ANCORA</button><br><button class="btn sec" id="change">Cambia soldatino</button></div>
+    <p id="eBest"></p><button class="btn" id="again">ANCORA</button><br><button class="btn sec" id="change">Cambia soldatino</button><br><a class="btn sec" href="../">← Torna ai giochi</a></div>
 </div>
 
 <div id="scope" class="hidden"></div>
@@ -146,6 +148,7 @@ body.zoom #cross{display:none}
     <button class="btn" id="cGo" style="width:100%;margin-top:22px">SCEGLI E GIOCA</button><button class="btn sec" id="cBack" style="width:100%;margin-top:10px">Indietro</button></div>
   <div id="selBottom"><button class="arrow" id="cPrev">‹</button><div id="cDots"></div><button class="arrow" id="cNext">›</button></div>
 </div>
+<a id="home" href="../">← Giochi</a>
 <script>window.ROOM_B64 = "/*ROOM_B64*/"; window.LOW_B64 = "/*LOW_B64*/"; window.ASSETS_B64 = /*ASSETS_JSON*/null;</script>
 <script type="module">
 import * as THREE from 'three';
@@ -854,5 +857,6 @@ window.__dbg = { sim: (sec, k = {}) => { Object.assign(keys, k); const n = Math.
   setKeys: k => Object.assign(keys, k), hits: () => hitsN, setChar, openSelect, me: () => me, selYaw: v => { selYaw = v; selEmT = 0; }, sel: () => selSoldiers, selMove, setGfx: v => { gfx = v; applyGfx(); }, ammo: () => ammo, darts: () => darts.length, zoomOn: v => { zoom = v; show('scope', v); }, low: () => lowMesh, room: () => room, scanC: () => scanCollider };
 }
 </script>
+<script type="module">import('../shared/core.js').then(m => m.announce({ game: 'nerf', code: null, status: 'playing' })).catch(() => {});</script>
 </body>
 </html>

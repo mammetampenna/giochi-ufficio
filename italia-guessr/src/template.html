@@ -20,6 +20,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
 <style>
 /*LEAFLET_CSS*/
+#hubLink{position:fixed;top:14px;left:14px;z-index:30;font-weight:600;font-size:14px;color:#fff;text-decoration:none;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)}
+#hubLink:hover{background:rgba(0,0,0,.7)}
+#hubBtn{display:grid;place-items:center;text-decoration:none;font-size:18px;min-width:36px}
 </style>
 <script>
 /*LEAFLET_JS*/
@@ -577,6 +580,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
 
 <!-- MENU -->
 <div id="menu">
+  <a id="hubLink" href="../">← Giochi</a>
   <div class="card glass">
     <h1 class="logo">Italia<span>Guessr</span></h1>
     <p class="sub">Ti catapulto in una città, un borgo o un monumento. Tu indovina dove sei.</p>
@@ -652,6 +656,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
   <button id="muteBtn" title="Audio">🔊</button>
   <button id="hudSetBtn" title="Impostazioni">⚙️</button>
   <button id="menuBtn" title="Menu">☰</button>
+  <a id="hubBtn" href="../" title="Torna ai giochi">🏠</a>
 </div>
 
 <button id="mapFab" class="hidden"><span>🗺️</span><b>Mappa</b></button>
@@ -667,7 +672,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
       <button class="mtool" id="zIn" title="Zoom +">+</button>
       <button class="mtool" id="zOut" title="Zoom −">−</button>
       <button class="mtool" id="fitBtn" title="Centra la zona">◎</button>
-      <button class="mtool" id="themeBtn" title="Cambia stile mappa">🎨</button>
+      <button class="mtool hidden" id="themeBtn" title="Cambia stile mappa">🎨</button>
       <button class="mtool" id="bigBtn" title="Mappa grande">⤢</button>
     </div>
   </div>
@@ -739,8 +744,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
         <label class="tgl"><input type="checkbox" id="noMove"><i></i><span><b>Niente movimento</b><small>Resti fermo nel punto iniziale (Street View e Mapillary).</small></span></label>
       </section>
       <section data-t="mappa" class="hidden">
-        <h3>Stile della mappa</h3>
-        <div class="themes" id="themeChips"></div>
+        <div class="themes hidden" id="themeChips"></div>
         <h3>Cosa mostrare</h3>
         <label class="tgl"><input type="checkbox" id="optComuni"><i></i><span><b>Confini dei comuni</b><small>Le linee sottili dei comuni dentro la zona di gioco.</small></span></label>
         <label class="tgl"><input type="checkbox" id="optHover"><i></i><span><b>Nome del comune al passaggio del mouse</b><small>Più facile: ti dice dove stai puntando.</small></span></label>
@@ -831,5 +835,6 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
 <script>
 /*APP_JS*/
 </script>
+<script type="module">import('../shared/core.js').then(m => m.announce({ game: 'guessr', code: null, status: 'playing' })).catch(() => {});</script>
 </body>
 </html>

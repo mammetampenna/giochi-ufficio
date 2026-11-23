@@ -152,6 +152,7 @@ function countUp(el, from, to, ms = 900, onTick) {
 /* ================= STATO ================= */
 const cfg = { region: 'calabria', timer: 180, rounds: 5, mode: 'sv', noMove: false, theme: 'notte', places: 'mix', showComuni: true, hoverNames: true, showTowns: true };
 try { Object.assign(cfg, JSON.parse(store('cg_cfg3') || '{}')); } catch (e) {}
+cfg.theme = 'satellite'; // le altre mappe non caricavano: resta solo il satellite
 let game = null, preGame = null, cur = null, pending = null, guess = null, roundToken = 0;
 let menuMap, gmap, rmap, gPin = null, rLayer = null;
 let svService = null, svPanorama = null, mlyViewer = null;
@@ -1145,7 +1146,7 @@ const PLACES_LBL = { mix: '🎯 Misto', poi: '🏛️ Punti di interesse', urban
 const MODE_LBL = { sv: '🌐 Street View', mly: '🛣️ Mapillary', photo: '📷 Foto' };
 function renderSummary() {
   const items = [['partita', '⏱', cfg.timer ? cfg.timer / 60 + ' min' : 'Senza timer'], ['partita', '🔁', cfg.rounds + ' round'], ['luoghi', '', PLACES_LBL[cfg.places]],
-    ['immagini', '', MODE_LBL[cfg.mode] + (cfg.noMove ? ' · fermo' : '')], ['mappa', '', THEMES[cfg.theme].label]];
+    ['immagini', '', MODE_LBL[cfg.mode] + (cfg.noMove ? ' · fermo' : '')]];
   if (isChi()) items.splice(3, 0, ['giocatori', '👥', PLAYERS.filter(p => p.on).length + ' giocatori']);
   $('summary').innerHTML = items.map(([t, ic, v]) => '<button data-t="' + t + '">' + (ic ? '<span>' + ic + '</span>' : '') + esc(v) + '</button>').join('');
   $('summary').querySelectorAll('button').forEach(b => b.onclick = () => openSettings(b.dataset.t));

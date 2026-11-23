@@ -681,6 +681,9 @@ svg.leaflet-image-layer.leaflet-interactive path {
 		}
 	}
 
+#hubLink{position:fixed;top:14px;left:14px;z-index:30;font-weight:600;font-size:14px;color:#fff;text-decoration:none;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(8px)}
+#hubLink:hover{background:rgba(0,0,0,.7)}
+#hubBtn{display:grid;place-items:center;text-decoration:none;font-size:18px;min-width:36px}
 </style>
 <script>
 /* @preserve
@@ -1243,6 +1246,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
 
 <!-- MENU -->
 <div id="menu">
+  <a id="hubLink" href="../">← Giochi</a>
   <div class="card glass">
     <h1 class="logo">Italia<span>Guessr</span></h1>
     <p class="sub">Ti catapulto in una città, un borgo o un monumento. Tu indovina dove sei.</p>
@@ -1318,6 +1322,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
   <button id="muteBtn" title="Audio">🔊</button>
   <button id="hudSetBtn" title="Impostazioni">⚙️</button>
   <button id="menuBtn" title="Menu">☰</button>
+  <a id="hubBtn" href="../" title="Torna ai giochi">🏠</a>
 </div>
 
 <button id="mapFab" class="hidden"><span>🗺️</span><b>Mappa</b></button>
@@ -1333,7 +1338,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
       <button class="mtool" id="zIn" title="Zoom +">+</button>
       <button class="mtool" id="zOut" title="Zoom −">−</button>
       <button class="mtool" id="fitBtn" title="Centra la zona">◎</button>
-      <button class="mtool" id="themeBtn" title="Cambia stile mappa">🎨</button>
+      <button class="mtool hidden" id="themeBtn" title="Cambia stile mappa">🎨</button>
       <button class="mtool" id="bigBtn" title="Mappa grande">⤢</button>
     </div>
   </div>
@@ -1405,8 +1410,7 @@ button,.chip,.opt,.pcard,.mtool{touch-action:manipulation;-webkit-tap-highlight-
         <label class="tgl"><input type="checkbox" id="noMove"><i></i><span><b>Niente movimento</b><small>Resti fermo nel punto iniziale (Street View e Mapillary).</small></span></label>
       </section>
       <section data-t="mappa" class="hidden">
-        <h3>Stile della mappa</h3>
-        <div class="themes" id="themeChips"></div>
+        <div class="themes hidden" id="themeChips"></div>
         <h3>Cosa mostrare</h3>
         <label class="tgl"><input type="checkbox" id="optComuni"><i></i><span><b>Confini dei comuni</b><small>Le linee sottili dei comuni dentro la zona di gioco.</small></span></label>
         <label class="tgl"><input type="checkbox" id="optHover"><i></i><span><b>Nome del comune al passaggio del mouse</b><small>Più facile: ti dice dove stai puntando.</small></span></label>
@@ -1774,6 +1778,7 @@ function countUp(el, from, to, ms = 900, onTick) {
 /* ================= STATO ================= */
 const cfg = { region: 'calabria', timer: 180, rounds: 5, mode: 'sv', noMove: false, theme: 'notte', places: 'mix', showComuni: true, hoverNames: true, showTowns: true };
 try { Object.assign(cfg, JSON.parse(store('cg_cfg3') || '{}')); } catch (e) {}
+cfg.theme = 'satellite'; // le altre mappe non caricavano: resta solo il satellite
 let game = null, preGame = null, cur = null, pending = null, guess = null, roundToken = 0;
 let menuMap, gmap, rmap, gPin = null, rLayer = null;
 let svService = null, svPanorama = null, mlyViewer = null;
@@ -2767,7 +2772,7 @@ const PLACES_LBL = { mix: '🎯 Misto', poi: '🏛️ Punti di interesse', urban
 const MODE_LBL = { sv: '🌐 Street View', mly: '🛣️ Mapillary', photo: '📷 Foto' };
 function renderSummary() {
   const items = [['partita', '⏱', cfg.timer ? cfg.timer / 60 + ' min' : 'Senza timer'], ['partita', '🔁', cfg.rounds + ' round'], ['luoghi', '', PLACES_LBL[cfg.places]],
-    ['immagini', '', MODE_LBL[cfg.mode] + (cfg.noMove ? ' · fermo' : '')], ['mappa', '', THEMES[cfg.theme].label]];
+    ['immagini', '', MODE_LBL[cfg.mode] + (cfg.noMove ? ' · fermo' : '')]];
   if (isChi()) items.splice(3, 0, ['giocatori', '👥', PLAYERS.filter(p => p.on).length + ' giocatori']);
   $('summary').innerHTML = items.map(([t, ic, v]) => '<button data-t="' + t + '">' + (ic ? '<span>' + ic + '</span>' : '') + esc(v) + '</button>').join('');
   $('summary').querySelectorAll('button').forEach(b => b.onclick = () => openSettings(b.dataset.t));
@@ -3473,5 +3478,6 @@ ZONE_READY = true;
 renderZoneMenu();
 
 </script>
+<script type="module">import('../shared/core.js').then(m => m.announce({ game: 'guessr', code: null, status: 'playing' })).catch(() => {});</script>
 </body>
 </html>

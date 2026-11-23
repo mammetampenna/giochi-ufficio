@@ -35,7 +35,7 @@ Lingua dell'interfaccia e dei commenti: **italiano**. Per ora è considerato **f
 - **Altre funzioni**:
   - timer da 1, 3 o 4 minuti;
   - punteggio in base alla distanza, con animazioni;
-  - impostazioni per tipo di mappa e tipi di punto.
+  - impostazioni per i tipi di punto. La mappa è solo satellitare (le altre non caricavano; scelta tolta il 23/11/2026, `cfg.theme` è forzato a "satellite").
 - **Minimappa**: piccola, si ingrandisce al passaggio del mouse e si richiude con un piccolo ritardo. Lo zoom con rotellina e pizzico è fluido. All'utente non piaceva sempre grande.
 - **Multiplayer**: ognuno sul suo computer, stanze con codice, classifiche. La tabella online si ridisegna solo quando cambia qualcosa (prima lampeggiava di continuo).
 
