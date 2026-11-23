@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+# scansione originale e pacchetti sorgente: troppo grandi e personali
+nerf-salotto/scan/
+nerf-salotto/assets_src/

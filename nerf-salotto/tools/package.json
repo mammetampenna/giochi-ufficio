@@ -1,0 +1,25 @@
+{
+  "name": "nerf-salotto-tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "python3 build.py",
+    "lowpoly": "ERR=0.006 node lowpoly.mjs 0.08",
+    "prep": "node prep.mjs && node prep2.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "meshoptimizer": "^1.3.0",
+    "three": "^0.170.0",
+    "three-mesh-bvh": "^0.8.3",
+    "@gltf-transform/extensions": "^4.5.1",
+    "sharp": "^0.33.0"
+  },
+  "type": "module",
+  "devDependencies": {}
+}
