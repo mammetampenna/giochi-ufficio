@@ -16,15 +16,15 @@ const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lang = store.get('bg_lang', null) || (['ca', 'en', 'it'].find(l => (navigator.language || '').startsWith(l)) || 'es');
 const t = (k, ...a) => { const v = T[lang][k] ?? T.es[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
 const LOC = { es: 'es-ES', ca: 'ca-ES', en: 'en-GB', it: 'it-IT' };
-const CATS = ['bocadillos', 'especiales', 'bikinis', 'combinados', 'bebidas'];
-const EMO = { bocadillos: '🥖', especiales: '⭐', bikinis: '🥪', combinados: '🍳', bebidas: '☕' };
+const CATS = ['bocadillos', 'cervezas', 'especiales', 'bikinis', 'combinados', 'bebidas'];
+const EMO = { bocadillos: '🥖', cervezas: '🍺', especiales: '⭐', bikinis: '🥪', combinados: '🍳', bebidas: '☕' };
 
 const S = {
   menu: [], tables: [], cfg: null, cat: 'bocadillos',
   cart: store.get('bg_cart', []),
   me: store.get('bg_me', { name: '', phone: '', company: '', fact: false }),
   orders: store.get('bg_orders', []),      // ordini fatti da questo browser, per seguirne lo stato
-  book: { day: null, people: 2, time: null, avail: [], tables: null },
+  book: { day: null, people: 2, time: null, avail: [], tables: null, round: 0 },
   pickDay: null, pickTime: null, hero: null,
 };
 
@@ -59,7 +59,7 @@ function applyLang() {
   document.documentElement.lang = lang;
   $('#lang').value = lang;
   $$('[data-i]').forEach(el => { const v = T[lang][el.dataset.i]; if (typeof v === 'string') el.textContent = v; });
-  if (S.cfg) { renderCats(); renderMenu(); renderHours(); renderOpen(); renderDays(); renderPeople(); renderSlots(); renderCart(); renderRec(); }
+  if (S.cfg) { renderBeerlist(); renderCats(); renderMenu(); renderHours(); renderOpen(); renderDays(); renderPeople(); renderSlots(); renderCart(); renderRec(); }
 }
 $('#lang').addEventListener('change', e => { lang = e.target.value; store.set('bg_lang', lang); applyLang(); });
 
@@ -112,7 +112,7 @@ function renderMenu() {
       <div class="ds">${esc(m.descr)} ${m.tags?.includes('orientativo') ? `<span class="tag">${esc(t('est'))}</span>` : ''} ${m.available ? '' : `<span class="tag">${esc(t('soldout'))}</span>`}</div>
       <div class="row">
         <div class="price">${eur(m.price)}${m.half ? `<small>½ ${esc(t('half'))} · ${eur(m.half)}</small>` : ''}</div>
-        <button class="add" data-add="${esc(m.id)}" aria-label="${esc(t('add_to'))} ${esc(m.name)}">+</button>
+        ${m.preorder ? `<button class="add" data-add="${esc(m.id)}" aria-label="${esc(t('add_to'))} ${esc(m.name)}">+</button>` : `<span class="bar-only">🍺 ${esc(t('bar_only'))}</span>`}
       </div>
     </article>`).join('');
 }
@@ -498,7 +498,8 @@ $('#bookForm').addEventListener('submit', async e => {
   S.me.name = f.name.value.trim(); S.me.phone = f.phone.value.trim(); store.set('bg_me', S.me);
   try {
     const r = await rpc('bg_book', { p: { day: S.book.day, time: mhm(S.book.time), people: S.book.people, tables: currentRun(),
-      name: f.name.value, phone: f.phone.value, email: f.email.value, notes: f.notes.value } });
+      name: f.name.value, phone: f.phone.value, email: f.email.value,
+      notes: (S.book.round ? `🍺 Primera ronda: ${S.book.round} cañas. ` : '') + f.notes.value } });
     f.classList.add('hide'); $$('#bookPanel .step:not(form)').forEach(s => s.classList.add('hide'));
     const done = $('#bookDone'); done.classList.remove('hide');
     done.innerHTML = `<div class="ticket"><div class="ok">✓</div><div class="kicker">${esc(t('booked_t'))}</div>
@@ -515,6 +516,48 @@ $('#bookForm').addEventListener('submit', async e => {
   } finally { btn.disabled = false; btn.textContent = t('b_confirm'); }
 });
 function prefill() { const f = $('#bookForm'); if (S.me.name && !f.name.value) f.name.value = S.me.name; if (S.me.phone && !f.phone.value) f.phone.value = S.me.phone; }
+
+
+// ---------------------------------------------------------------- afterwork
+function drawLights() {
+  const W = 1200, n = 26; let path = 'M0 10', bulbs = '';
+  for (let i = 0; i < 3; i++) { const x0 = i * W / 3, x1 = (i + 1) * W / 3; path += ` Q${(x0 + x1) / 2} 90 ${x1} 10`; }
+  const colors = ['#ffe28a', '#ffb36b', '#ff8f7a', '#fff1c2'];
+  for (let i = 0; i <= n; i++) {
+    const x = i * W / n, seg = Math.min(2, Math.floor(x / (W / 3))), u = (x - seg * W / 3) / (W / 3);
+    const y = (1 - u) * (1 - u) * 10 + 2 * (1 - u) * u * 90 + u * u * 10;
+    const c = colors[i % 4];
+    bulbs += `<g class="bulb"><line x1="${x}" y1="${y}" x2="${x}" y2="${y + 8}" stroke="#2b211a" stroke-width="2"/><circle cx="${x}" cy="${y + 16}" r="14" fill="${c}" opacity=".25"/><ellipse cx="${x}" cy="${y + 15}" rx="5" ry="7" fill="${c}"/></g>`;
+  }
+  $('#lights').innerHTML = `<svg viewBox="0 0 ${W} 110" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="#2b211a" stroke-width="2.5"/>${bulbs}</svg>`;
+}
+function renderBeerlist() {
+  $('#beerlist').innerHTML = S.menu.filter(m => m.cat === 'cervezas' && m.available).slice(0, 8)
+    .map(m => `<li>${dishHTML(m)}<div><b>${esc(m.name)}</b><span>${eur(m.price)}</span></div></li>`).join('');
+}
+$('#awSee').addEventListener('click', () => { S.cat = 'cervezas'; renderCats(); renderMenu(); $('#carta').scrollIntoView({ behavior: 'smooth' }); });
+$('#awBook').addEventListener('click', () => {
+  // il primo giorno con un turno dalle 18:00 in poi, 6 persone, primo giro da 6
+  const days = bookDays();
+  const day = days.find(d => slotsFor(d).some(m => m >= 18 * 60)) || S.book.day;
+  S.book.day = day; S.book.people = 6; S.book.tables = null;
+  const late = slotsFor(day).filter(m => m >= 18 * 60);
+  S.book.time = late[0] ?? null; S.book.round = 6;
+  renderDays(); renderPeople(); renderRound();
+  loadAvail().then(() => {
+    const free = slotsFor(day).filter(m => m >= 18 * 60).find(m => pick(S.tables, busyTables(S.book.avail, m, m + dur()), S.book.people));
+    if (free != null) { S.book.time = free; renderSlots(); }
+  });
+  $('#reservar').scrollIntoView({ behavior: 'smooth' });
+  $(`#days [data-day="${day}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+});
+function renderRound() {
+  $('#rOut').textContent = S.book.round;
+  $('#round').classList.toggle('on', S.book.round > 0);
+  $('#rMinus').disabled = S.book.round <= 0;
+}
+$('#rMinus').addEventListener('click', () => { S.book.round = Math.max(0, S.book.round - 1); renderRound(); });
+$('#rPlus').addEventListener('click', () => { S.book.round = Math.min(40, S.book.round + 1); renderRound(); });
 
 // ---------------------------------------------------------------- orari e cartello "aperto"
 function renderHours() {
@@ -558,7 +601,7 @@ $('#lookForm').addEventListener('submit', async e => {
 
 // ---------------------------------------------------------------- avvio
 async function init() {
-  drawAwning(); applyLang(); watchReveal();
+  drawAwning(); drawLights(); applyLang(); watchReveal();
   try {
     const [menu, tables, cfg] = await Promise.all([
       table('bg_menu', 'select=*&order=sort'),
@@ -570,7 +613,7 @@ async function init() {
   } catch {
     $('#menu').innerHTML = `<div class="empty"><div class="big">😕</div><b>${esc(t('e_error'))}</b></div>`; mountHero(); return;
   }
-  saveCart(); prefill(); applyLang(); loadAvail(); pollOrders(); mountHero(); watchReveal();
+  saveCart(); prefill(); renderRound(); applyLang(); loadAvail(); pollOrders(); mountHero(); watchReveal();
   setInterval(renderOpen, 60000);
   if (location.hash === '#pedido') { renderCart(); openLayer($('#drawer')); }
 }

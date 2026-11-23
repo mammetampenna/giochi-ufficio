@@ -146,6 +146,35 @@ const DRINK = {
   cana: `<path d="M76 46h48l-6 70H82z" fill="#f2b632" stroke="#c48a12" stroke-width="2"/><path d="M74 40q6 -12 16 -6q8 -10 18 -2q10 -6 16 6v10H74z" fill="#fffaf0" stroke="#e3d6bd" stroke-width="2"/><path d="M86 56v52" stroke="#fff" stroke-opacity=".4" stroke-width="4"/><g class="bubbles" fill="#fff6d6">${[0, 1, 2, 3].map(i => `<circle cx="${92 + i * 6}" cy="104" r="1.6" style="animation-delay:${i * .45}s"/>`).join('')}</g>`,
 };
 
+
+// ---------------------------------------------------------------- birre
+const bub = (x0, x1, y, n = 5, col = '#fff6d6') => `<g class="bubbles" fill="${col}">${Array.from({ length: n }, (_, i) => `<circle cx="${x0 + (x1 - x0) * i / (n - 1)}" cy="${y}" r="${1.4 + (i % 2) * .5}" style="animation-delay:${(i * .37) % 1.8}s"/>`).join('')}</g>`;
+const foam = (x0, x1, y) => `<path d="M${x0 - 3} ${y + 6}q-2 -12 10 -12q4 -9 14 -4q8 -8 16 0q10 -6 14 4q12 -2 ${x1 - x0 - 50} 12z" fill="#fffaf0" stroke="#e3d6bd" stroke-width="1.8"/>`;
+function glass(x0, x1, xb0, xb1, top, bot, beerTop, color = '#f2b632', edge = '#c48a12') {
+  return `<path d="M${x0} ${top}L${x1} ${top}L${xb1} ${bot}L${xb0} ${bot}Z" fill="#fff" fill-opacity=".35" stroke="#b9ad97" stroke-width="2"/>
+    <path d="M${x0 + (xb0 - x0) * (beerTop - top) / (bot - top) + 2} ${beerTop}L${x1 - (x1 - xb1) * (beerTop - top) / (bot - top) - 2} ${beerTop}L${xb1 - 2} ${bot - 2}L${xb0 + 2} ${bot - 2}Z" fill="${color}" stroke="${edge}" stroke-width="1"/>
+    <path d="M${x0 + 10} ${beerTop + 6}L${xb0 + 8} ${bot - 6}" stroke="#fff" stroke-opacity=".45" stroke-width="4" stroke-linecap="round"/>`;
+}
+function bottle(h, body, label, labelTxt = '', cap = '#c8553d') {
+  const top = 118 - h;
+  const b = `<path d="M92 ${top + 8}h16v${h * .22}q16 8 16 26V114q0 6-6 6H82q-6 0-6-6V${top + 8 + h * .22 + 26}q0-18 16-26z" fill="${body}" stroke="#3d2410" stroke-width="2"/>
+    <rect x="77" y="${top + h * .55}" width="46" height="${h * .26}" rx="3" fill="${label}"/>${labelTxt ? `<text x="100" y="${top + h * .55 + h * .17}" text-anchor="middle" font-size="${h * .13}" font-weight="900" font-family="Archivo,sans-serif" fill="#fff">${labelTxt}</text>` : `<circle cx="100" cy="${top + h * .68}" r="${h * .08}" fill="#fff" opacity=".9"/>`}
+    <path d="M84 ${top + 50}v${h * .5}" stroke="#fff" stroke-opacity=".3" stroke-width="4" stroke-linecap="round"/>`;
+  return L(b + `<ellipse cx="100" cy="122" rx="40" ry="5" fill="rgba(0,0,0,.08)"/>`, 0, -4, ';--rot:-3deg') + L(`<rect x="90" y="${top}" width="20" height="9" rx="2" fill="${cap}" stroke="#7a2a18" stroke-width="1.5"/><path d="M90 ${top + 9}h20" stroke="#fff" stroke-opacity=".5"/>`, 1, -46, ';--rot:50deg');
+}
+const BEER = {
+  'cana-cerveza': () => L(glass(76, 124, 84, 116, 52, 118, 64) + bub(88, 112, 112), 0, -4) + L(foam(76, 124, 54), 1, -16),
+  doble: () => L(glass(70, 130, 82, 118, 34, 120, 48) + bub(86, 114, 114, 6), 0, -4) + L(foam(70, 130, 36), 1, -18),
+  clara: () => L(glass(76, 124, 84, 116, 52, 118, 64, '#f7e08a', '#d6b84a') + bub(88, 112, 112) + `<circle cx="126" cy="58" r="13" fill="#f4e04d" stroke="#c9b22a" stroke-width="2"/><path d="M126 46v24M114 58h24M117 50l18 16M135 50l-18 16" stroke="#fff6b0" stroke-width="1.5"/>`, 0, -4) + L(foam(76, 124, 54), 1, -14),
+  jarra: () => L(`<path d="M128 62q26 0 24 24t-24 22" fill="none" stroke="#b9ad97" stroke-width="7"/>` + glass(66, 130, 68, 128, 46, 120, 58) + `<g stroke="#fff" stroke-opacity=".35" stroke-width="3">${[80, 96, 112].map(x => `<path d="M${x} 66v46"/>`).join('')}</g>` + bub(78, 118, 114, 6), 0, -4, ';--rot:-5deg') + L(foam(66, 130, 48), 1, -16),
+  botellin: () => bottle(74, '#6b3a12', '#c8553d'),
+  mediana: () => bottle(96, '#5a3010', '#c8553d'),
+  tostada: () => bottle(96, '#3e200a', '#b8782c'),
+  'sin-alcohol': () => bottle(96, '#4a3a18', '#2f6aa8', '0,0', '#2f6aa8'),
+  cubo: () => L(`${[70, 86, 102, 118, 130].map((x, i) => `<path d="M${x} ${30 + (i % 2) * 8}h8v18q6 6 6 14v20h-20v-20q0-8 6-14z" fill="#6b3a12" stroke="#3d2410" stroke-width="1.5"/><rect x="${x}" y="${26 + (i % 2) * 8}" width="8" height="5" rx="1" fill="#c8553d"/>`).join('')}`, 1, -18)
+    + L(`<path d="M56 66h88l-10 52H66z" fill="#c9cdd2" stroke="#7d8590" stroke-width="2"/><path d="M56 66h88" stroke="#e9ecef" stroke-width="5"/><path d="M62 80h76M66 100h68" stroke="#9aa1a9" stroke-width="2"/>${[[74, 62], [96, 60], [118, 63]].map(([x, y]) => `<rect x="${x}" y="${y}" width="10" height="9" rx="2" fill="#e8f6ff" stroke="#9cc9e4" stroke-width="1.5" transform="rotate(15 ${x} ${y})"/>`).join('')}`, 2, -2),
+};
+
 // ---------------------------------------------------------------- API
 export function dishHTML(m) {
   let kind = 'boca', layers = '';
@@ -156,6 +185,8 @@ export function dishHTML(m) {
   else if (COMBO[m.id]) {
     kind = 'plate';
     layers = L(plate, 0, 0) + COMBO[m.id].map(([f, x, y], i) => L(P[f](x, y), i + 1, -14 - i * 4)).join('') + L(steam, 9, -6);
+  } else if (BEER[m.id]) {
+    kind = 'beer'; layers = BEER[m.id]();
   } else if (DRINK[m.id]) {
     kind = 'drink';
     layers = L(DRINK[m.id], 0, -6) + (['cafe-solo', 'cortado', 'cafe-leche'].includes(m.id) ? L(steam.replace(/M(\d+) 3[04]/g, (s, x) => `M${x} ${m.id === 'cafe-leche' ? 44 : 56}`), 1, -10) : '');

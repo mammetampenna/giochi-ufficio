@@ -1,5 +1,5 @@
 -- Dati iniziali: tavoli, orari, carta (dalle lavagne del locale, 23/11/2026)
-insert into public.bg_settings(key,value) values ('config', '{"dur": 90, "book_lead": 30, "order_lead": 15, "max_online": 16, "extra_price": 0.7, "extras": ["queso", "cebolla", "pimiento"], "days": {"1": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["20:00", "22:00"]]}, "2": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["20:00", "22:00"]]}, "3": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["20:00", "22:00"]]}, "4": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["20:00", "22:00"]]}, "5": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["20:00", "22:00"]]}, "6": {"open": "08:00", "close": "16:00", "book": [["13:00", "15:00"]]}, "7": null}}'::jsonb) on conflict (key) do nothing;
+insert into public.bg_settings(key,value) values ('config', '{"dur": 90, "book_lead": 30, "order_lead": 15, "max_online": 16, "extra_price": 0.7, "extras": ["queso", "cebolla", "pimiento"], "days": {"1": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["17:30", "22:00"]]}, "2": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["17:30", "22:00"]]}, "3": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["17:30", "22:00"]]}, "4": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["17:30", "22:00"]]}, "5": {"open": "07:30", "close": "23:00", "book": [["13:00", "15:30"], ["17:00", "22:00"]]}, "6": {"open": "08:00", "close": "16:00", "book": [["13:00", "15:00"]]}, "7": null}}'::jsonb) on conflict (key) do nothing;
 insert into public.bg_tables(id,seats,zone,label,zone_ord,pos,x,y) values
 (1,4,'ventana','Ventana',1,1,14,20),
 (2,4,'ventana','Ventana',1,2,32,20),
@@ -63,6 +63,17 @@ insert into public.bg_menu(id,cat,name,name_en,descr,price,half,extras,tags,sort
 ('cortado','bebidas','Cortado','Cortado','',1.5,null,false,'{orientativo}',470),
 ('cafe-leche','bebidas','Café con leche','Café latte','',1.8,null,false,'{orientativo}',480),
 ('refresco','bebidas','Refresco','Soft drink','Lata',2.2,null,false,'{orientativo}',490),
-('agua','bebidas','Agua','Water','50 cl',1.5,null,false,'{orientativo}',500),
-('cana','bebidas','Caña','Small beer','',2.2,null,false,'{orientativo}',510)
+('agua','bebidas','Agua','Water','50 cl',1.5,null,false,'{orientativo}',500)
+on conflict (id) do nothing;
+-- Birre (23/11/2026): prezzi orientativi; le spillate si bevono al bar, le bottiglie si possono anche ritirare
+insert into public.bg_menu(id,cat,name,name_en,descr,price,half,extras,tags,preorder,sort) values
+('cana-cerveza','cervezas','Caña','Small draught beer','De barril, bien tirada',2.20,null,false,'{orientativo}',false,1),
+('doble','cervezas','Doble','Large draught beer','De barril, en copa grande',3.50,null,false,'{orientativo}',false,2),
+('jarra','cervezas','Jarra','Beer mug (50 cl)','Para los que vienen con sed',4.50,null,false,'{orientativo}',false,3),
+('clara','cervezas','Clara','Shandy','Caña con limón',2.40,null,false,'{orientativo}',false,4),
+('botellin','cervezas','Botellín','Small bottle (20 cl)','El de toda la vida',2.00,null,false,'{orientativo}',true,5),
+('mediana','cervezas','Mediana','Bottle (33 cl)','Botella de tercio',2.80,null,false,'{orientativo}',true,6),
+('tostada','cervezas','Tostada','Amber beer (33 cl)','Más maltosa',3.20,null,false,'{orientativo}',true,7),
+('sin-alcohol','cervezas','Sin alcohol','Alcohol-free beer','0,0 %',2.50,null,false,'{orientativo}',true,8),
+('cubo','cervezas','Cubo de 5 botellines','Bucket of 5 small bottles','Con hielo, para compartir',8.50,null,false,'{orientativo}',false,9)
 on conflict (id) do nothing;

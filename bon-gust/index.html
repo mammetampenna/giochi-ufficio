@@ -24,6 +24,7 @@
     </a>
     <nav class="nav">
       <a href="#carta" data-i="nav_menu">Carta</a>
+      <a href="#afterwork" data-i="nav_aw">Afterwork 🍺</a>
       <a href="#reservar" data-i="nav_book">Reservar</a>
       <a href="#info" data-i="nav_info">Dónde estamos</a>
     </nav>
@@ -85,6 +86,49 @@
   </div>
 </div>
 
+<section id="afterwork" class="aw">
+  <div class="lights" id="lights" aria-hidden="true"></div>
+  <div class="wrap aw-in">
+    <div class="aw-txt reveal">
+      <span class="kicker" data-i="aw_kicker">Afterwork</span>
+      <h2><span data-i="aw_t1">¿Una caña</span> <em data-i="aw_t2">al salir?</em></h2>
+      <p data-i="aw_p">Cierras el portátil, bajas con los compañeros y la caña ya está fría. Juntamos mesas para todo el equipo y si queréis os dejamos la primera ronda tirada.</p>
+      <ul class="beerlist" id="beerlist"></ul>
+      <div class="ctas">
+        <button class="btn beer" id="awBook">🍻 <span data-i="aw_book">Reservar para el afterwork</span></button>
+        <button class="btn ghost" id="awSee" data-i="aw_see">Ver todas las cervezas</button>
+      </div>
+      <p class="aw-badge hand" data-i="aw_badge">¡Los viernes, medio Factorial está aquí!</p>
+    </div>
+    <div class="cheers reveal" aria-hidden="true">
+      <svg viewBox="0 0 400 360" id="cheers">
+        <defs>
+          <clipPath id="g1"><path d="M110 120h84l-12 190h-60z"/></clipPath>
+          <clipPath id="g2"><path d="M206 120h84l-12 190h-60z"/></clipPath>
+          <linearGradient id="beerG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd25a"/><stop offset="1" stop-color="#e79a14"/></linearGradient>
+        </defs>
+        <ellipse cx="200" cy="322" rx="150" ry="14" fill="rgba(0,0,0,.25)"/>
+        <g class="gl gl1">
+          <g clip-path="url(#g1)"><rect class="fill" x="100" y="120" width="100" height="200" fill="url(#beerG)"/>
+            <g class="bubbles" fill="#fff6d6"><circle cx="120" cy="300" r="2" style="animation-delay:0.00s"/><circle cx="129" cy="300" r="3" style="animation-delay:0.41s"/><circle cx="138" cy="300" r="4" style="animation-delay:0.82s"/><circle cx="147" cy="300" r="2" style="animation-delay:1.23s"/><circle cx="156" cy="300" r="3" style="animation-delay:1.64s"/><circle cx="165" cy="300" r="4" style="animation-delay:0.05s"/><circle cx="174" cy="300" r="2" style="animation-delay:0.46s"/><circle cx="183" cy="300" r="3" style="animation-delay:0.87s"/></g></g>
+          <path class="froth" d="M104 132q-4-22 18-22q6-14 22-8q12-12 26 0q16-6 22 8q20 0 14 22q-4 10-14 6q-30 8-60 0q-14 4-28-6z" fill="#fffaf0"/>
+          <path d="M110 120h84l-12 190h-60z" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="4"/>
+          <path d="M122 140l8 150" stroke="#fff" stroke-opacity=".45" stroke-width="7" stroke-linecap="round"/>
+        </g>
+        <g class="gl gl2">
+          <g clip-path="url(#g2)"><rect class="fill" x="196" y="120" width="100" height="200" fill="url(#beerG)"/>
+            <g class="bubbles" fill="#fff6d6"><circle cx="216" cy="300" r="2" style="animation-delay:0.00s"/><circle cx="225" cy="300" r="3" style="animation-delay:0.53s"/><circle cx="234" cy="300" r="4" style="animation-delay:1.06s"/><circle cx="243" cy="300" r="2" style="animation-delay:1.59s"/><circle cx="252" cy="300" r="3" style="animation-delay:0.12s"/><circle cx="261" cy="300" r="4" style="animation-delay:0.65s"/><circle cx="270" cy="300" r="2" style="animation-delay:1.18s"/><circle cx="279" cy="300" r="3" style="animation-delay:1.71s"/></g></g>
+          <path class="froth" d="M200 132q-4-22 18-22q6-14 22-8q12-12 26 0q16-6 22 8q20 0 14 22q-4 10-14 6q-30 8-60 0q-14 4-28-6z" fill="#fffaf0"/>
+          <path d="M206 120h84l-12 190h-60z" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="4"/>
+          <path d="M218 140l8 150" stroke="#fff" stroke-opacity=".45" stroke-width="7" stroke-linecap="round"/>
+        </g>
+        <g class="splash" fill="#fffaf0"><circle cx="200" cy="112" r="3" style="--dx:-30px;--dy:-61px"/><circle cx="200" cy="112" r="4" style="--dx:-47px;--dy:-34px"/><circle cx="200" cy="112" r="5" style="--dx:-10px;--dy:-50px"/><circle cx="200" cy="112" r="6" style="--dx:-41px;--dy:-75px"/><circle cx="200" cy="112" r="3" style="--dx:-52px;--dy:-79px"/><circle cx="200" cy="112" r="4" style="--dx:-9px;--dy:-45px"/><circle cx="200" cy="112" r="5" style="--dx:57px;--dy:-62px"/><circle cx="200" cy="112" r="6" style="--dx:42px;--dy:-32px"/><circle cx="200" cy="112" r="3" style="--dx:-53px;--dy:-66px"/><circle cx="200" cy="112" r="4" style="--dx:6px;--dy:-46px"/></g>
+        <text class="salud" x="200" y="70" text-anchor="middle" font-family="Caveat,cursive" font-weight="700" font-size="64" fill="#ffe98a">¡Salud!</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
 <section id="carta" class="menu-sec">
   <div class="wrap">
     <div class="shead">
@@ -118,6 +162,11 @@
             <label class="field"><span data-i="f_phone">Teléfono</span><input name="phone" required type="tel" minlength="6" maxlength="30" autocomplete="tel"></label>
           </div>
           <label class="field"><span data-i="f_email">Email (opcional)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+          <div class="round" id="round">
+            <span class="glass" aria-hidden="true">🍺</span>
+            <div><b data-i="round_t">¿Os dejamos la primera ronda tirada?</b><span class="sub" data-i="round_p">Cañas listas en la mesa cuando lleguéis.</span></div>
+            <div class="stepper sm"><button type="button" id="rMinus" aria-label="−">−</button><output id="rOut">0</output><button type="button" id="rPlus" aria-label="+">+</button></div>
+          </div>
           <label class="field"><span data-i="f_notes">Notas (alergias, trona, cumpleaños…)</span><textarea name="notes" rows="2" maxlength="500"></textarea></label>
           <div class="err" id="bookErr"></div>
           <button class="btn pri" style="width:100%" id="bookBtn" data-i="b_confirm">Confirmar reserva</button>

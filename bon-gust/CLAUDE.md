@@ -12,6 +12,14 @@ Risposte e commenti all'utente: **in italiano**. Il sito parla castigliano (pred
 - **Piatti illustrati** (`dishes.js`): ogni piatto è disegnato a strati SVG che si aprono in 3D al passaggio del mouse (o al tocco). Le composizioni sono nelle tabelle `BOCA`, `BIKINI`, `COMBO`, `DRINK`; un prodotto nuovo senza disegno usa un bocadillo generico.
 - Le foto delle lavagne sono state tolte dal sito su richiesta dell'utente (23/11/2026).
 
+## Birre e afterwork (richiesta dell'utente, 23/11/2026)
+- Uno dei focus: chi esce da Factorial a fine turno e beve qualcosa con i colleghi.
+- Categoria `cervezas` (seconda nella carta): caña, doble, jarra, clara, botellín, mediana, tostada, sin alcohol, cubo. Prezzi **orientativi** e senza marca: da confermare col locale.
+- Le spillate (`preorder = false`) si bevono solo al bar ("en la barra"); le bottiglie si possono anche ordinare da ritirare.
+- Sezione "La hora de la caña" (`#afterwork`): lucine, due cañas che si riempiono e brindano, lista delle birre, pulsante che prepara la prenotazione (primo giorno con turno dalle 18:00, 6 persone, primo giro da 6).
+- Turni prenotabili: pranzo 13:00–15:30 e dal tardo pomeriggio 17:30–22:00 (venerdì dalle 17:00).
+- "Primera ronda": nel modulo di prenotazione si sceglie quante cañas far trovare in tavola; finisce nelle note ("🍺 Primera ronda: N cañas."), che il personale vede.
+
 ## Dati raccolti
 - Carta e prezzi: dalle due lavagne fotografate dall'utente (bocadillos interi e mezzi, supplemento queso/cebolla/pimiento +0,70 €, platos combinados).
 - Le **bevande** non sono sulle lavagne: prezzi orientativi, segnati con il tag `orientativo`.

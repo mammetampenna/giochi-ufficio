@@ -1,6 +1,11 @@
 // Testi del sito in castigliano, catalano, inglese e italiano
 export const T = {
   es: {
+    nav_aw: 'Afterwork 🍺', cat_cervezas: 'Cervezas', bar_only: 'en la barra',
+    aw_kicker: 'La hora de la caña', aw_t1: '¿Una caña', aw_t2: 'al salir?',
+    aw_p: 'Cierras el portátil, bajas con los compañeros y la caña ya está fría. Juntamos mesas para todo el equipo y, si queréis, os dejamos la primera ronda tirada.',
+    aw_book: 'Reservar para el afterwork', aw_see: 'Ver todas las cervezas', aw_badge: '¡Los viernes, medio Factorial está aquí! 🍻',
+    round_t: '¿Os dejamos la primera ronda tirada?', round_p: 'Cañas listas en la mesa cuando lleguéis.',
     hero_h1a: '¿Lo de', hero_h1b: 'siempre?', f_tables: 'mesas', f_dishes: 'platos', f_metro: 'del metro L4',
     today_rec: 'Hoy te recomendamos', other: 'Otro', want_it: 'Lo quiero', hint3d: 'arrástralo para girarlo · tócalo para cambiar',
     pol1: 'la pizarra 🥖', pol2: 'combinados 🍳', bye: '¡Hasta mañana!', open_until: h => `Abierto · hasta las ${h}`, closed_sign: 'Ahora cerrado · ¡vuelve pronto!',
@@ -52,6 +57,11 @@ export const T = {
     marquee: ['Bocadillos', 'Bikinis', 'Platos combinados', 'Café', 'Terraza', 'Poblenou', 'Pide y recoge', 'Reserva online'],
   },
   ca: {
+    nav_aw: 'Afterwork 🍺', cat_cervezas: 'Cerveses', bar_only: 'a la barra',
+    aw_kicker: 'L’hora de la canya', aw_t1: 'Una canya', aw_t2: 'en sortir?',
+    aw_p: 'Tanques el portàtil, baixes amb els companys i la canya ja és freda. Ajuntem taules per a tot l’equip i, si voleu, us deixem la primera ronda tirada.',
+    aw_book: 'Reservar per a l’afterwork', aw_see: 'Veure totes les cerveses', aw_badge: 'Els divendres, mig Factorial és aquí! 🍻',
+    round_t: 'Us deixem la primera ronda tirada?', round_p: 'Canyes a punt a la taula quan arribeu.',
     hero_h1a: 'El de', hero_h1b: 'sempre?', f_tables: 'taules', f_dishes: 'plats', f_metro: 'del metro L4',
     today_rec: 'Avui et recomanem', other: 'Un altre', want_it: 'El vull', hint3d: 'arrossega’l per girar-lo · toca’l per canviar',
     pol1: 'la pissarra 🥖', pol2: 'combinats 🍳', bye: 'Fins demà!', open_until: h => `Obert · fins a les ${h}`, closed_sign: 'Ara tancat · torna aviat!',
@@ -103,6 +113,11 @@ export const T = {
     marquee: ['Entrepans', 'Bikinis', 'Plats combinats', 'Cafè', 'Terrassa', 'Poblenou', 'Demana i recull', 'Reserva online'],
   },
   en: {
+    nav_aw: 'Afterwork 🍺', cat_cervezas: 'Beers', bar_only: 'at the bar',
+    aw_kicker: 'Beer o’clock', aw_t1: 'A cold one', aw_t2: 'after work?',
+    aw_p: 'Close the laptop, come down with your teammates and the caña is already cold. We push tables together for the whole team and, if you like, have the first round poured and waiting.',
+    aw_book: 'Book for afterwork', aw_see: 'See all the beers', aw_badge: 'On Fridays, half of Factorial is here! 🍻',
+    round_t: 'Shall we pour the first round?', round_p: 'Cañas waiting on the table when you arrive.',
     hero_h1a: 'The usual,', hero_h1b: 'love?', f_tables: 'tables', f_dishes: 'dishes', f_metro: 'from metro L4',
     today_rec: 'Today we recommend', other: 'Another', want_it: 'I want it', hint3d: 'drag to spin · tap to change',
     pol1: 'the board 🥖', pol2: 'combo plates 🍳', bye: 'See you tomorrow!', open_until: h => `Open · until ${h}`, closed_sign: 'Closed now · see you soon!',
@@ -154,6 +169,11 @@ export const T = {
     marquee: ['Bocadillos', 'Toasties', 'Combo plates', 'Coffee', 'Terrace', 'Poblenou', 'Order & collect', 'Book online'],
   },
   it: {
+    nav_aw: 'Afterwork 🍺', cat_cervezas: 'Birre', bar_only: 'al bancone',
+    aw_kicker: 'L’ora della caña', aw_t1: 'Una birretta', aw_t2: 'dopo il lavoro?',
+    aw_p: 'Chiudi il portatile, scendi con i colleghi e la caña è già fresca. Uniamo i tavoli per tutto il team e, se volete, vi facciamo trovare il primo giro già spillato.',
+    aw_book: 'Prenota per l’afterwork', aw_see: 'Vedi tutte le birre', aw_badge: 'Il venerdì, mezza Factorial è qui! 🍻',
+    round_t: 'Vi facciamo trovare il primo giro?', round_p: 'Cañas pronte sul tavolo quando arrivate.',
     hero_h1a: 'Il solito', hero_h1b: 'di sempre?', f_tables: 'tavoli', f_dishes: 'piatti', f_metro: 'dalla metro L4',
     today_rec: 'Oggi ti consigliamo', other: 'Un altro', want_it: 'Lo voglio', hint3d: 'trascinalo per girarlo · toccalo per cambiare',
     pol1: 'la lavagna 🥖', pol2: 'combinati 🍳', bye: 'A domani!', open_until: h => `Aperto · fino alle ${h}`, closed_sign: 'Ora chiuso · torna presto!',
