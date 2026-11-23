@@ -68,6 +68,7 @@ export function battle(o) {
       if (busy || over) return; busy = true;
       $$('.die, .boom-x, .pairline', tray).forEach(x => x.remove()); banner('');
       const res = await o.resolve(nd);
+      if (!res) { busy = false; return close(false, true); } // mossa rifiutata o persa per strada: non resto bloccato
       const fast = blitz || o.fast ? .45 : 1;
       const decisive = res.conquered;
       const tr = tray.getBoundingClientRect(), W = tr.width, H = tr.height, S = Math.min(56, W / 7);

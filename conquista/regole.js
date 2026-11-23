@@ -53,6 +53,16 @@ export function missionText(st, m) {
   if (m.k === 'destroy') { const p = st.players.find(x => x.id === m.target); return `Elimina ${p?.name || 'un avversario'} (se lo elimina un altro: conquista ${m.n} territori)`; }
   return '';
 }
+// a che punto è un giocatore col suo obiettivo: { have, need }
+export function missionProgress(st, p) {
+  const map = getMap(st.map), mine = map.terr.filter(t => st.owner[t.id] === p), m = st.missions?.[p];
+  if (!m) return { have: mine.length, need: map.terr.length };
+  if (m.k === 'terr') return { have: mine.length, need: m.n };
+  if (m.k === 'terr2') return { have: mine.filter(t => st.armies[t.id] >= 2).length, need: m.n };
+  if (m.k === 'regions') { const all = map.terr.filter(t => m.ids.includes(t.region)); return { have: all.filter(t => st.owner[t.id] === p).length, need: all.length }; }
+  if (m.k === 'destroy') { const ti = st.players.findIndex(x => x.id === m.target); if (st.players[ti]?.alive) { const left = map.terr.filter(t => st.owner[t.id] === ti).length; return { have: 0, need: left, left }; } return { have: mine.length, need: m.n }; }
+  return { have: 0, need: 1 };
+}
 function missionDone(st, p) {
   const map = getMap(st.map), mine = map.terr.filter(t => st.owner[t.id] === p);
   if (!st.missions) return mine.length === map.terr.length;
@@ -115,6 +125,14 @@ export function apply(st, a, rnd = Math.random) {
     st.armies[a.terr] += n; st.reinf -= n;
     if (st.reinf === 0 && (st.cards[p].length < 5 || !bestTrade(st.cards[p]))) st.phase = 'attack';
     return { ok: true, ev: { t: 'place', p, terr: a.terr, n } };
+  }
+  if (a.t === 'placeAll') { // tutti i rinforzi decisi dal giocatore in una volta: { terr: n }
+    if (st.phase !== 'reinforce') return bad('Non è il momento dei rinforzi');
+    const list = Object.entries(a.list || {}).filter(([, n]) => n > 0), tot = list.reduce((s, [, n]) => s + n, 0);
+    if (!tot || tot > st.reinf || list.some(([t, n]) => st.owner[t] !== p || !Number.isInteger(n))) return bad('Rinforzi non validi');
+    list.forEach(([t, n]) => st.armies[t] += n); st.reinf -= tot;
+    if (st.reinf === 0 && (st.cards[p].length < 5 || !bestTrade(st.cards[p]))) st.phase = 'attack';
+    return { ok: true, ev: { t: 'placeAll', p, list: Object.fromEntries(list) } };
   }
   if (a.t === 'attack') {
     if (st.phase !== 'attack' || st.pending) return bad('Non è il momento di attaccare');

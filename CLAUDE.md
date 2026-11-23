@@ -133,10 +133,15 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
   - Dadi 3D in CSS con una fisica semplice (rimbalzi e urti), che atterrano sempre sui valori decisi dalle regole. La traiettoria si calcola tutta prima e la esegue il browser con WAAPI: così è fluida anche se la pagina è impegnata.
   - Poi si mettono in fila e si scontrano a coppie: esplosioni, carrarmatini che volano via, "Sfondato!", "Difeso!", "Conquistato!", "Tris!", "Doppio sei!". Quando può arrivare la conquista, c'è il rallentatore.
   - Il pulsante "Fino in fondo" lancia a raffica. Le battaglie degli altri si vedono in versione veloce.
-- **Interfaccia** (`conquista.js`):
-  - Mappa SVG da trascinare e da avvicinare con due dita o con la rotellina.
-  - Fasi: rinforzi (+1, +3, tutte), attacco (selezione e bersagli lampeggianti), spostamento.
-  - Finestre per le carte, l'obiettivo e le armate da spostare. Il colore del vincitore si allarga cella per cella e i carrarmatini marciano.
+- **Interfaccia** (`conquista.js`), rifatta il 23/11/2026 dopo le critiche dell'utente ("si blocca, la selezione non funziona, non si capisce cosa fare, mappa caotica"):
+  - Il tocco sul territorio si riconosce al `pointerup` senza trascinamento (con `setPointerCapture` il `click` non arriva al territorio: era il guasto della selezione). Si tocca anche il distintivo.
+  - Mappa pulita: colori pieni dei giocatori, confini scuri sottili, niente grana né onde. Distintivi con le armate sempre della stessa grandezza sullo schermo; se si sovrappongono si scostano con una lineetta (`layoutBadges`). I nomi compaiono solo avvicinando la mappa, o sul territorio scelto.
+  - Pannello in basso che dice sempre cosa fare: passi Rinforza → Attacca → Sposta, frase con l'istruzione, pulsanti. Selettori − n + (si può tenere premuto) al posto degli slider.
+  - Rinforzi in bozza: ogni tocco mette un'armata, "Rifai" e "Conferma" inviano tutto con l'azione `placeAll`.
+  - Attacco: brillano i territori da cui si può attaccare, frecce verso i bersagli; toccando direttamente un nemico si attacca dal mio vicino più forte. Dopo la conquista il numero di armate da spostare è nel pannello.
+  - Le battaglie degli altri si vedono sulla mappa con dadi piccoli (`mapBattle`), non nella finestra a tutto schermo; pulsante "Veloce" (`localStorage.conq_fast`).
+  - Obiettivo sempre in vista in alto a sinistra con l'avanzamento (`missionProgress` in `regole.js`); tutorial di 4 schede alla prima partita (`conq_tuto`) e col pulsante ?.
+  - Robustezza: ogni evento ha al massimo 8 s di animazioni, una battaglia mia si chiude se la mossa viene rifiutata, un computer con mossa rifiutata passa.
 - **Online (per ora)**: dal vivo, decide l'host, come nella briscola; lo stato è salvato in `game_rooms.state`.
 - **Da fare**: partite in sospeso vere, con l'arbitro e i dadi su una Edge Function di Supabase (così nessuno bara e si gioca anche quando l'host è offline), "Le mie partite" nel menu e il ritmo "con calma". L'utente non vuole voci generate con ElevenLabs perché costano troppo.
 
