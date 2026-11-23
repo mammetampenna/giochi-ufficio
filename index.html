@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Giochi d'Ufficio</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<link rel="stylesheet" href="shared/ui.css">
+<style>
+  main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; padding: 100px 0 60px; }
+  .hero { display: flex; flex-wrap: wrap; align-items: end; gap: 24px 40px; margin-bottom: 36px; }
+  .hero h1 { margin: 0; font-size: clamp(44px, 8vw, 96px); line-height: .92; letter-spacing: -.04em; font-weight: 800; }
+  .hero h1 .w { display: inline-block; overflow: hidden; padding-bottom: .08em; }
+  .hero h1 .l { display: inline-block; animation: rise .9s var(--ease) backwards; }
+  .hero h1 .grad { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  @keyframes rise { from { transform: translateY(110%) rotate(8deg); } }
+  .hero p { margin: 14px 0 0; color: var(--dim); font-size: 18px; animation: fadeUp .8s .5s var(--ease) backwards; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } }
+
+  .joinbox { margin-left: auto; padding: 16px 18px; animation: fadeUp .8s .65s var(--ease) backwards; }
+  .joinbox small { display: block; color: var(--dim); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+  .boxes { display: flex; gap: 6px; }
+  .boxes input {
+    width: 44px; height: 54px; text-align: center; font-size: 24px; font-weight: 800; text-transform: uppercase;
+    border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.25); outline: none;
+    transition: border-color .2s, transform .25s var(--spring), box-shadow .2s;
+  }
+  .boxes input:focus { border-color: var(--acc4); box-shadow: 0 0 0 4px rgba(123,108,255,.25); transform: translateY(-2px); }
+  .boxes.bad { animation: shake .35s; } .boxes.good input { border-color: var(--ok); }
+  @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; perspective: 1200px; }
+  .card {
+    --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --c1: var(--acc); --c2: var(--acc2);
+    position: relative; grid-column: span 2; min-height: 290px; padding: 22px; border-radius: 26px; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end; text-decoration: none; color: var(--text);
+    background: linear-gradient(160deg, color-mix(in srgb, var(--c1) 30%, #1b1733), #15122a 70%);
+    border: 1px solid rgba(255,255,255,.1); transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d;
+    transition: transform .5s var(--ease), box-shadow .4s, border-color .3s; animation: cardIn .9s var(--ease) backwards;
+    box-shadow: 0 20px 50px -25px rgba(0,0,0,.8);
+  }
+  .card.wide { grid-column: span 3; } .card.full { grid-column: span 4; }
+  .card:hover { transition: transform .12s linear, box-shadow .4s, border-color .3s; border-color: color-mix(in srgb, var(--c1) 60%, transparent);
+    box-shadow: 0 30px 70px -25px color-mix(in srgb, var(--c1) 70%, transparent); }
+  .card::after { /* riflesso che segue il mouse */
+    content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+    background: radial-gradient(500px circle at var(--mx) var(--my), rgba(255,255,255,.16), transparent 45%);
+  }
+  .card:hover::after { opacity: 1; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(40px) scale(.95); } }
+  .card h2 { margin: 0; font-size: 30px; letter-spacing: -.02em; transform: translateZ(40px); }
+  .card p { margin: 6px 0 0; color: var(--dim); font-size: 15px; transform: translateZ(30px); max-width: 34ch; }
+  .tags { display: flex; gap: 6px; margin-bottom: 10px; transform: translateZ(30px); }
+  .tag { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.1); }
+  .tag.live { background: color-mix(in srgb, var(--c1) 35%, transparent); }
+  .card .go {
+    position: absolute; right: 20px; bottom: 22px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
+    background: #fff; color: #15122a; transform: translateZ(50px) scale(.6); opacity: 0; transition: all .35s var(--spring);
+  }
+  .card:hover .go { transform: translateZ(50px) scale(1); opacity: 1; }
+  .card.soon { cursor: default; }
+  .card.soon .go { display: none; }
+  .ribbon { position: absolute; top: 18px; right: -34px; transform: rotate(35deg); background: var(--acc2); color: #241500; font-weight: 800; font-size: 12px; padding: 5px 40px; letter-spacing: .1em; }
+  .scene { position: absolute; inset: 0 0 auto 0; height: 62%; display: grid; place-items: center; transform: translateZ(20px); }
+
+  /* Morra: due pugni che battono */
+  .fists { display: flex; gap: 26px; font-size: 64px; }
+  .fists span { display: inline-block; animation: pump 1.2s var(--ease) infinite; filter: drop-shadow(0 10px 18px rgba(0,0,0,.4)); }
+  .fists span:last-child { animation-delay: .06s; }
+  .card:hover .fists span { animation-duration: .7s; }
+  @keyframes pump { 0%, 100% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-22px) rotate(-8deg); } 55% { transform: translateY(4px); } }
+  .shout {
+    position: absolute; top: 18%; left: 50%; font-weight: 800; font-size: 22px; padding: 6px 14px; border-radius: 14px 14px 14px 4px;
+    background: #fff; color: #15122a; animation: shout 3.6s var(--spring) infinite;
+  }
+  .shout.b { left: auto; right: 14%; top: 10%; border-radius: 14px 14px 4px 14px; animation-delay: 1.8s; background: var(--acc2); }
+  @keyframes shout { 0%, 30% { transform: scale(0) rotate(-10deg); opacity: 0; } 38%, 60% { transform: scale(1) rotate(-4deg); opacity: 1; } 70%, 100% { transform: scale(.6); opacity: 0; } }
+
+  /* Briscola: ventaglio di carte */
+  .fan { position: relative; width: 120px; height: 150px; }
+  .fan .pc {
+    position: absolute; left: 30px; top: 10px; width: 84px; height: 130px; border-radius: 9px; background: #fbf6ea; border: 3px solid #fff;
+    box-shadow: 0 10px 25px rgba(0,0,0,.35); transform-origin: 50% 120%; transition: transform .6s var(--spring); display: grid; place-items: center;
+  }
+  .fan .pc svg { width: 54px; height: 54px; }
+  .fan .pc:nth-child(1) { transform: rotate(-22deg); } .fan .pc:nth-child(2) { transform: rotate(0); } .fan .pc:nth-child(3) { transform: rotate(22deg); }
+  .card:hover .fan .pc:nth-child(1) { transform: rotate(-36deg) translateY(-8px); } .card:hover .fan .pc:nth-child(2) { transform: translateY(-16px); }
+  .card:hover .fan .pc:nth-child(3) { transform: rotate(36deg) translateY(-8px); }
+  .fan .pc.back { background: repeating-linear-gradient(45deg, #b0202a 0 6px, #8d1820 6px 12px); }
+
+  /* Scarta!: carte colorate che girano */
+  .orbit { position: relative; width: 170px; height: 170px; animation: spin 14s linear infinite; }
+  .card:hover .orbit { animation-duration: 5s; }
+  .orbit b {
+    position: absolute; left: 60px; top: 45px; width: 50px; height: 76px; border-radius: 9px; border: 3px solid #fff; display: grid; place-items: center;
+    font-size: 26px; font-weight: 800; color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.25);
+  }
+  .orbit b:nth-child(1) { background: #ff4b5c; transform: rotate(0deg) translateY(-62px); } .orbit b:nth-child(2) { background: #ffc22e; transform: rotate(90deg) translateY(-62px); }
+  .orbit b:nth-child(3) { background: #2ecc71; transform: rotate(180deg) translateY(-62px); } .orbit b:nth-child(4) { background: #3b82f6; transform: rotate(270deg) translateY(-62px); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ItaliaGuessr: segnaposto che rimbalza */
+  .mapscene { position: relative; width: 100%; height: 100%; background-image: radial-gradient(rgba(255,255,255,.18) 1.2px, transparent 1.3px); background-size: 18px 18px;
+    mask-image: radial-gradient(circle at 50% 50%, #000 30%, transparent 70%); }
+  .pin { position: absolute; left: 50%; top: 42%; font-size: 46px; transform: translate(-50%, -100%); animation: bounce 1.6s var(--ease) infinite; }
+  .pin::after { content: ''; position: absolute; left: 50%; bottom: -8px; width: 22px; height: 6px; margin-left: -11px; border-radius: 50%; background: rgba(0,0,0,.4); animation: shadow 1.6s var(--ease) infinite; }
+  .ring { position: absolute; left: 50%; top: 42%; width: 12px; height: 12px; margin: -6px; border-radius: 50%; border: 2px solid var(--acc3); animation: ring 1.6s ease-out infinite; }
+  @keyframes bounce { 0%, 100% { transform: translate(-50%, -100%); } 45% { transform: translate(-50%, -150%); } }
+  @keyframes shadow { 45% { transform: scale(.5); opacity: .4; } }
+  @keyframes ring { from { transform: scale(1); opacity: 1; } to { transform: scale(7); opacity: 0; } }
+
+  /* Nerf: mirino e freccetta */
+  .target { position: relative; width: 120px; height: 120px; border-radius: 50%;
+    background: radial-gradient(circle, #ff5b5b 0 14%, #fff 14% 28%, #ff5b5b 28% 42%, #fff 42% 56%, #ff5b5b 56% 70%, transparent 70%); }
+  .dart { position: absolute; left: -70px; top: 50px; width: 70px; height: 10px; border-radius: 5px;
+    background: linear-gradient(90deg, #3b82f6 0 70%, #ff8a00 70%); animation: dart 2.4s var(--ease) infinite; }
+  @keyframes dart { 0%, 20% { transform: translateX(-140px); opacity: 0; } 50% { transform: translateX(80px); opacity: 1; } 90% { transform: translateX(80px); opacity: 1; } 100% { opacity: 0; transform: translateX(80px); } }
+  .cross { position: absolute; inset: -16px; border: 2px dashed rgba(255,255,255,.4); border-radius: 50%; animation: spin 10s linear infinite; }
+
+  footer { margin-top: 40px; color: var(--dim); font-size: 13px; text-align: center; opacity: .7; }
+  @media (max-width: 900px) { .card, .card.wide, .card.full { grid-column: span 3; } }
+  @media (max-width: 620px) { .card, .card.wide, .card.full { grid-column: span 6; } .joinbox { margin-left: 0; } }
+  .leaving .card { transition: transform .5s var(--ease), opacity .4s !important; opacity: 0; transform: translateY(30px) scale(.94); }
+  .leaving .card.chosen { opacity: 1; transform: scale(1.04); }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="s-denari" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="#e9b42c" stroke="#a5711a" stroke-width="3"/><circle cx="32" cy="32" r="15" fill="#d8461f"/><circle cx="32" cy="32" r="7" fill="#f5d36a"/></symbol>
+    <symbol id="s-coppe" viewBox="0 0 64 64"><path d="M14 10h36c0 18-6 26-14 28v10h8v6H20v-6h8V38c-8-2-14-10-14-28z" fill="#e9b42c" stroke="#a5711a" stroke-width="3" stroke-linejoin="round"/><path d="M20 16h24" stroke="#d8461f" stroke-width="5"/></symbol>
+    <symbol id="s-spade" viewBox="0 0 64 64"><path d="M32 4l6 10v32h-12V14z" fill="#9db7d4" stroke="#3c5778" stroke-width="3" stroke-linejoin="round"/><rect x="16" y="44" width="32" height="6" rx="3" fill="#d8461f"/><rect x="28" y="50" width="8" height="10" rx="2" fill="#3c5778"/></symbol>
+  </defs>
+</svg>
+
+<main>
+  <section class="hero">
+    <div>
+      <h1 id="title"></h1>
+      <p>Per le pause tra una call e l'altra, con i colleghi di Factorial.</p>
+    </div>
+    <div class="joinbox glass">
+      <small>Hai un codice stanza?</small>
+      <div class="boxes" id="boxes"><input maxlength="1" aria-label="Lettera 1"><input maxlength="1" aria-label="Lettera 2"><input maxlength="1" aria-label="Lettera 3"><input maxlength="1" aria-label="Lettera 4"><input maxlength="1" aria-label="Lettera 5"></div>
+    </div>
+  </section>
+
+  <section class="grid" id="grid">
+    <a class="card wide" href="morra/" data-game="morra" style="--c1:#ff5b7f;--c2:#ffb23f">
+      <div class="scene"><div class="fists"><span>🤜</span><span>🤛</span></div><div class="shout">Setti!</div><div class="shout b">Tutta!</div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">2 giocatori</span><span class="tag">vs computer</span></div>
+      <h2 class="t">Morra calabrese</h2>
+      <p>Butta le dita, grida il numero. Chi indovina la somma fa punto.</p>
+      <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <div class="card wide soon" data-game="briscola" style="--c1:#e9b42c;--c2:#d8461f">
+      <div class="ribbon">PRESTO</div>
+      <div class="scene"><div class="fan"><div class="pc back"></div><div class="pc"><svg><use href="#s-coppe"/></svg></div><div class="pc"><svg><use href="#s-denari"/></svg></div></div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">carte piacentine</span></div>
+      <h2>Briscola</h2>
+      <p>Il classico, con le carte di casa. Uno contro uno o a coppie.</p>
+    </div>
+    <div class="card soon" data-game="carte" style="--c1:#3b82f6;--c2:#2ecc71">
+      <div class="ribbon">PRESTO</div>
+      <div class="scene"><div class="orbit"><b>7</b><b>+2</b><b>↺</b><b>⊘</b></div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">2–10</span></div>
+      <h2>Scarta!</h2>
+      <p>Colori, numeri, carte cattive. Vince chi resta senza carte.</p>
+    </div>
+    <a class="card" href="italia-guessr/italia-guessr.html" data-game="guessr" style="--c1:#3fd6c6;--c2:#7b6cff">
+      <div class="scene"><div class="mapscene"></div><div class="ring"></div><div class="pin">📍</div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">Street View</span></div>
+      <h2>ItaliaGuessr</h2>
+      <p>Dove ti trovi? Indovina il posto sulla mappa.</p>
+      <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="card" href="nerf-salotto/nerf-salotto.html" data-game="nerf" style="--c1:#ff7a45;--c2:#3b82f6">
+      <div class="scene"><div class="target"><div class="cross"></div><div class="dart"></div></div></div>
+      <div class="tags"><span class="tag">Da solo</span><span class="tag">3D</span></div>
+      <h2>Nerf in Salotto</h2>
+      <p>Soldatini, jetpack e freccette in un salotto vero.</p>
+      <span class="go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+    </a>
+  </section>
+  <footer>Fatto in casa · niente pubblicità · solo da computer</footer>
+</main>
+
+<script type="module">
+import { $, $$, mountTopbar, getProfile, findRoom, GAMES, toast, sfx } from './shared/core.js';
+
+mountTopbar({ back: false });
+
+// titolo con lettere che salgono una alla volta
+const words = [['Giochi', ''], ["d'Ufficio", 'grad']];
+let i = 0;
+$('#title').innerHTML = words.map(([w, cls]) => `<span class="w ${cls}">${[...w].map(ch => `<span class="l" style="animation-delay:${(i++) * 35}ms">${ch}</span>`).join('')}</span>`).join(' ');
+
+// schede: entrata a cascata e inclinazione 3D con il mouse
+$$('.card').forEach((c, k) => {
+  c.style.animationDelay = (350 + k * 90) + 'ms';
+  c.addEventListener('pointermove', e => {
+    const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    c.style.setProperty('--mx', x * 100 + '%'); c.style.setProperty('--my', y * 100 + '%');
+    c.style.setProperty('--ry', (x - .5) * 12 + 'deg'); c.style.setProperty('--rx', (.5 - y) * 10 + 'deg');
+  });
+  c.addEventListener('pointerleave', () => { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
+  c.addEventListener('pointerenter', () => sfx('click'));
+});
+
+// i giochi nuovi condividono la transizione del titolo; gli altri hanno un'uscita animata
+$$('a.card').forEach(c => c.addEventListener('click', e => {
+  const g = c.dataset.game;
+  if (g === 'morra') { $('.t', c).style.viewTransitionName = 'title-' + g; return; }
+  e.preventDefault(); c.classList.add('chosen'); $('#grid').classList.add('leaving');
+  setTimeout(() => location.href = c.href, 420);
+}));
+$$('.card.soon').forEach(c => c.addEventListener('click', () => toast('Ci stiamo lavorando! 🛠️')));
+
+// casella del codice: 5 caselline, avanza da sola, incolla tutto in una volta
+const boxes = $$('#boxes input');
+boxes.forEach((b, k) => {
+  b.addEventListener('input', () => { b.value = b.value.replace(/[^a-z0-9]/gi, '').toUpperCase().slice(-1); if (b.value && k < 4) boxes[k + 1].focus(); check(); });
+  b.addEventListener('keydown', e => { if (e.key === 'Backspace' && !b.value && k) boxes[k - 1].focus(); });
+  b.addEventListener('paste', e => { e.preventDefault(); const t = (e.clipboardData.getData('text') || '').replace(/[^a-z0-9]/gi, '').toUpperCase().slice(0, 5);
+    [...t].forEach((ch, j) => boxes[j] && (boxes[j].value = ch)); boxes[Math.min(t.length, 4)].focus(); check(); });
+});
+async function check() {
+  const code = boxes.map(b => b.value).join('');
+  if (code.length < 5) return;
+  const box = $('#boxes');
+  try {
+    const row = await findRoom(code);
+    if (!row || !GAMES[row.game]) throw 0;
+    box.classList.add('good'); sfx('win');
+    setTimeout(() => location.href = GAMES[row.game].path + '?r=' + code, 350);
+  } catch (e) {
+    box.classList.remove('bad'); void box.offsetWidth; box.classList.add('bad'); sfx('lose'); toast('Codice non trovato');
+  }
+}
+</script>
+</body>
+</html>
