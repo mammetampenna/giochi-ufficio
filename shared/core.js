@@ -38,8 +38,22 @@ export function getProfile() {
 }
 export function saveProfile(p) { store('gu_profile', p); window.dispatchEvent(new CustomEvent('profile', { detail: p })); }
 export function avatarHTML(p, big) {
-  return `<span class="avatar${big ? ' big' : ''}" style="background:${p.color}33;box-shadow:inset 0 0 0 2px ${p.color}">${p.avatar}</span>`;
+  return `<span class="avatar${big ? ' big' : ''}" style="--av:${p.color}">${p.avatar}</span>`;
 }
+/* ---------- icone (Lucide, 1.5 di tratto) ---------- */
+const IC = {
+  back: '<path d="m15 18-6-6 6-6"/>',
+  arrow: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  sound: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  mute: '<path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/>',
+  wave: '<path d="M18 11V6a2 2 0 0 0-4 0"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-6-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>',
+  home: '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .7-1.53l7-6a2 2 0 0 1 2.6 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+};
+export const icon = (n, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
+
 export function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
 // finestra per scegliere nome e avatar; si risolve quando il profilo è pronto
@@ -187,7 +201,7 @@ export function sfx(kind) {
 export function confetti(n = 120) {
   const c = document.createElement('canvas'); c.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:90';
   c.width = innerWidth; c.height = innerHeight; document.body.appendChild(c);
-  const x = c.getContext('2d'), cols = ['#ff5b7f', '#ffb23f', '#3fd6c6', '#7b6cff', '#3fdc8a', '#fff'];
+  const x = c.getContext('2d'), cols = ['#c9302c', '#eab53b', '#efe9de', '#2c5aa6', '#3b8a4c'];
   const P = Array.from({ length: n }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 200, y: innerHeight * .45, vx: (Math.random() - .5) * 16, vy: -Math.random() * 16 - 6,
     r: Math.random() * Math.PI, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 8, h: 4 + Math.random() * 6, c: cols[Math.random() * cols.length | 0] }));
   let f = 0;
@@ -204,7 +218,7 @@ export function mountTopbar({ back = true } = {}) {
   const bar = document.createElement('div'); bar.className = 'topbar';
   const draw = () => {
     const p = getProfile();
-    bar.innerHTML = (back ? `<a class="back" href="${siteRoot()}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>Giochi</a>` : '')
+    bar.innerHTML = (back ? `<a class="back" href="${siteRoot()}">${icon('back')}Giochi</a>` : '')
       + `<button class="me-chip">${avatarHTML(p)}<span>${esc(p.name || 'Profilo')}</span></button>`;
     $('.me-chip', bar).onclick = () => editProfile();
   };
@@ -250,7 +264,7 @@ function showPing(d) {
   box.className = 'ping glass';
   const url = d.kind === 'invite' && GAMES[d.game] ? siteRoot() + GAMES[d.game].path + '?r=' + d.code : null;
   box.innerHTML = `${avatarHTML(d.from)}<div><b>${esc(d.from.name)}</b><span>${url ? `ti invita a ${esc(GAMES[d.game].name)}` : 'ti saluta 👋'}</span></div>
-    ${url ? `<a class="btn primary small" href="${url}">Entra</a>` : ''}<button class="btn small x">${url ? 'No grazie' : 'Ciao!'}</button>`;
+    ${url ? `<a class="btn primary small" href="${url}">Entra</a>` : ''}<button class="btn small x">${url ? 'No grazie' : 'Ciao'}</button>`;
   document.body.appendChild(box); sfx('win');
   const close = () => { box.classList.add('out'); setTimeout(() => box.remove(), 300); };
   box.querySelector('.x').onclick = () => { if (!url && d.kind === 'wave') ping(d.from.id, 'wave-back'); close(); };

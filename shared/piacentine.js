@@ -101,18 +101,30 @@ function half(s, r) {
   // oggetto in mano: piccolo simbolo del seme
   const held = s === 'D' || s === 'C' ? use(s, 128, 92, 46, 46)
     : `<g transform="translate(150 118) rotate(28)">${use(s, -9, -62, 18, 118)}</g>`;
-  const body = `<path d="M52 170 C52 120 68 98 100 96 C132 98 148 120 148 170 Z" fill="${g1}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
-    <path d="M100 98 L100 170" stroke="${K.ink}" stroke-width="2"/>
-    <path d="M78 102 L100 124 L122 102" fill="${g2}" stroke="${K.ink}" stroke-width="2.4" stroke-linejoin="round"/>
-    ${[132, 146, 160].map(y => `<circle cx="100" cy="${y}" r="2.6" fill="${g2}" stroke="${K.ink}" stroke-width="1.2"/>`).join('')}`;
+  // tre sagome diverse: fante snello a righe, cavaliere con corazza, re con il mantello d'ermellino
+  const body = r === 8
+    ? `<path d="M68 170 C68 128 78 102 100 100 C122 102 132 128 132 170 Z" fill="${g1}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M84 104 V170 M116 104 V170" stroke="${g2}" stroke-width="8"/><path d="M84 104 V170 M116 104 V170" stroke="${K.ink}" stroke-width="1.2" opacity=".5"/>
+      <circle cx="70" cy="118" r="12" fill="${g2}" stroke="${K.ink}" stroke-width="2.4"/><circle cx="130" cy="118" r="12" fill="${g2}" stroke="${K.ink}" stroke-width="2.4"/>
+      <path d="M86 104 Q100 114 114 104" fill="none" stroke="${K.ink}" stroke-width="2.4"/>`
+    : r === 9
+    ? `<path d="M56 170 C56 122 70 100 100 98 C130 100 144 122 144 170 Z" fill="${g1}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M74 112 Q100 126 126 112 L128 140 Q100 152 72 140 Z" fill="${K.sky}" stroke="${K.ink}" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M100 98 V170" stroke="${K.ink}" stroke-width="2"/>`
+    : `<path d="M28 170 C32 122 60 100 100 98 C140 100 168 122 172 170 Z" fill="${g1}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M86 112 H114 V170 H86 Z" fill="${g2}" stroke="${K.ink}" stroke-width="2.4"/>
+      <path d="M52 114 Q100 132 148 114 L152 128 Q100 148 48 128 Z" fill="${K.paper}" stroke="${K.ink}" stroke-width="2.4" stroke-linejoin="round"/>
+      ${[[62, 124], [80, 131], [100, 134], [120, 131], [138, 124]].map(([x, y]) => `<path d="M${x} ${y - 3} v6" stroke="${K.ink}" stroke-width="2.6" stroke-linecap="round"/>`).join('')}`;
   const face = `<rect x="92" y="80" width="16" height="18" fill="${K.skin}" stroke="${K.ink}" stroke-width="2.4"/>
     <ellipse cx="100" cy="66" rx="19" ry="21" fill="${K.skin}" stroke="${K.ink}" stroke-width="${SW}"/>
     <circle cx="93" cy="65" r="2.2" fill="${K.ink}"/><circle cx="107" cy="65" r="2.2" fill="${K.ink}"/>
     <path d="M95 76 Q100 79 105 76" fill="none" stroke="${K.ink}" stroke-width="1.8" stroke-linecap="round"/>`;
   let hat = '', extra = '';
-  if (r === 8) { // fante: berretto piumato
-    hat = `<path d="M78 56 C80 36 122 34 124 54 L130 58 C112 50 92 50 74 58 Z" fill="${g2}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
-      <path d="M118 42 C134 26 148 30 150 22 C150 36 136 44 122 48 Z" fill="${K.paper}" stroke="${K.ink}" stroke-width="2"/>`;
+  if (r === 8) { // fante: giovane senza barba, basco largo e inclinato con la piuma
+    hat = `<path d="M70 52 C72 30 128 28 134 46 C120 42 90 44 70 52 Z" fill="${K.red}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <path d="M74 52 Q100 44 130 46" fill="none" stroke="${K.gold}" stroke-width="4"/>
+      <path d="M124 38 C140 18 156 22 160 12 C162 30 146 40 128 44 Z" fill="${K.paper}" stroke="${K.ink}" stroke-width="2"/>
+      <path d="M82 54 C80 62 81 70 84 76 M118 54 C120 62 119 70 116 76" fill="none" stroke="${K.brown}" stroke-width="5" stroke-linecap="round"/>`;
   } else if (r === 9) { // cavallo: cavaliere con la testa del cavallo accanto
     hat = `<path d="M80 60 C80 36 120 36 120 60 L120 52 C110 44 90 44 80 52 Z" fill="${K.sky}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
       <path d="M100 38 C104 26 114 22 118 24 C112 28 106 32 104 40 Z" fill="${g2}" stroke="${K.ink}" stroke-width="2"/>`;
@@ -120,18 +132,23 @@ function half(s, r) {
       <circle cx="60" cy="98" r="2.6" fill="${K.ink}"/>
       <path d="M36 100 C30 112 30 130 32 150" fill="none" stroke="${g2}" stroke-width="7" stroke-linecap="round"/>
       <path d="M46 116 L70 112" stroke="${K.red}" stroke-width="4" stroke-linecap="round"/>`;
-  } else { // re: corona e barba
-    hat = `<path d="M78 52 L80 30 L90 42 L100 26 L110 42 L120 30 L122 52 Z" fill="${K.gold}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
-      <circle cx="100" cy="44" r="3" fill="${K.red}"/>`;
-    extra = `<path d="M82 72 C84 92 116 92 118 72 C114 80 86 80 82 72 Z" fill="${K.brown}" stroke="${K.ink}" stroke-width="2"/>`;
+  } else { // re: corona alta a cinque punte, barba lunga e scettro
+    hat = `<path d="M76 54 L74 20 L87 36 L100 14 L113 36 L126 20 L124 54 Z" fill="${K.gold}" stroke="${K.ink}" stroke-width="${SW}" stroke-linejoin="round"/>
+      <rect x="76" y="46" width="48" height="9" fill="${K.red}" stroke="${K.ink}" stroke-width="2"/>
+      ${[[74, 20], [100, 14], [126, 20]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.6" fill="${K.paper}" stroke="${K.ink}" stroke-width="1.6"/>`).join('')}
+      <circle cx="100" cy="40" r="4" fill="${K.blue}" stroke="${K.ink}" stroke-width="1.6"/>`;
+    extra = `<g transform="translate(46 96) rotate(-14)"><rect x="-3" y="0" width="6" height="74" rx="3" fill="${K.gold}" stroke="${K.ink}" stroke-width="2"/>
+      <circle cx="0" cy="-4" r="9" fill="${K.gold}" stroke="${K.ink}" stroke-width="2.4"/><path d="M0 -14 v-8 M-4 -18 h8" stroke="${K.ink}" stroke-width="2.2"/></g>`;
   }
-  return extra + body + held + face + (r === 10 ? `<path d="M82 72 C84 94 116 94 118 72 C112 82 88 82 82 72 Z" fill="${K.paper}" stroke="${K.ink}" stroke-width="2.2"/><path d="M93 77 Q100 74 107 77" fill="none" stroke="${K.ink}" stroke-width="1.8"/>` : '') + hat;
+  const beard = r === 10 ? `<path d="M80 68 C80 92 92 104 100 112 C108 104 120 92 120 68 C112 80 88 80 80 68 Z" fill="${K.paper}" stroke="${K.ink}" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M92 78 Q100 74 108 78" fill="none" stroke="${K.ink}" stroke-width="2"/><path d="M100 86 V104 M93 88 L96 102 M107 88 L104 102" stroke="${K.ink}" stroke-width="1.2" opacity=".45"/>` : '';
+  return body + extra + held + face + beard + hat;
 }
 function figure(s, r) {
   const h = half(s, r);
   return `<clipPath id="fc${s}${r}"><rect x="16" y="16" width="168" height="308" rx="8"/></clipPath>
     <g clip-path="url(#fc${s}${r})">
-      <rect x="16" y="16" width="168" height="308" rx="8" fill="${GARB[s][0]}" opacity=".1"/>
+      <rect x="16" y="16" width="168" height="308" rx="8" fill="${r === 10 ? K.gold : r === 9 ? K.sky : K.paper}" opacity="${r === 8 ? 1 : .28}"/>
       <g>${h}</g><g transform="rotate(180 100 170)">${h}</g>
     </g>
     <rect x="16" y="16" width="168" height="308" rx="8" fill="none" stroke="${K.ink}" stroke-width="2"/>

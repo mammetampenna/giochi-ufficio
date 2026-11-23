@@ -1,29 +1,16 @@
 // Morra calabrese online: ognuno butta 1–5 dita e chiama un numero 2–10; chi indovina la somma fa punto.
-import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, sha, sfx, confetti, sleep } from '../shared/core.js';
+import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, sha, sfx, confetti, sleep, icon } from '../shared/core.js';
+import { HAND, setFingers, handStyles } from '../shared/mano.js';
+import { anim, timeline, tween } from '../shared/motion.js';
 import { mountLobby } from '../shared/lobby.js';
 
 const DIALETTO = { 2: 'Dui!', 3: 'Tri!', 4: 'Quattru!', 5: 'Cincu!', 6: 'Sei!', 7: 'Setti!', 8: 'Ottu!', 9: 'Novi!', 10: 'Tutta!' };
 const PAROLA = { 2: 'due', 3: 'tre', 4: 'quattro', 5: 'cinque', 6: 'sei', 7: 'sette', 8: 'otto', 9: 'nove', 10: 'tutta' };
-const BOT = { id: 'bot', name: 'Compare Turi', avatar: '🤖', color: '#3fd6c6' };
+const BOT = { id: 'bot', name: 'Compare Turi', avatar: '🤖', color: '#2c5aa6' };
 
 mountTopbar();
 
-/* ---------- mano in SVG (punta verso l'alto, il pollice è a sinistra) ---------- */
-const HAND = color => `<svg class="hand" viewBox="0 0 200 280">
-  <rect x="52" y="214" width="96" height="74" rx="12" fill="${color}" stroke="#3a2440" stroke-width="5"/>
-  <rect x="52" y="214" width="96" height="16" rx="6" fill="rgba(255,255,255,.35)"/>
-  <g class="fg f1"><rect class="sk" x="53" y="44" width="23" height="104" rx="11.5"/></g>
-  <g class="fg f2"><rect class="sk" x="78" y="32" width="23" height="116" rx="11.5"/></g>
-  <g class="fg f3"><rect class="sk" x="103" y="42" width="23" height="106" rx="11.5"/></g>
-  <g class="fg f4"><rect class="sk" x="127" y="64" width="21" height="84" rx="10.5"/></g>
-  <rect class="sk" x="48" y="116" width="104" height="112" rx="36"/>
-  <path d="M72 128 q8 6 16 0 M97 128 q8 6 16 0 M121 128 q7 5 14 0" fill="none" stroke="#c98f6a" stroke-width="3" stroke-linecap="round"/>
-  <g class="th"><rect class="sk" x="30" y="118" width="28" height="78" rx="14"/></g>
-</svg>`;
-function setFingers(side, n) {
-  const order = ['.f1', '.f2', '.f3', '.f4', '.th'];
-  order.forEach((s, i) => $(s, side).classList.toggle('up', i < n));
-}
+handStyles();
 
 /* ---------- stato ---------- */
 let room = null, me = getProfile(), soundOn = true;
@@ -32,8 +19,8 @@ const L = $('#sideL'), R = $('#sideR');
 window.__morra = G; // per i test
 
 try { soundOn = localStorage.getItem('morra_sound') !== '0'; } catch (e) {}
-const sb = $('#sound'); sb.textContent = soundOn ? '🔊' : '🔇';
-sb.onclick = () => { soundOn = !soundOn; sb.textContent = soundOn ? '🔊' : '🔇'; try { localStorage.setItem('morra_sound', soundOn ? '1' : '0'); } catch (e) {} };
+const sb = $('#sound'); sb.innerHTML = icon(soundOn ? 'sound' : 'mute');
+sb.onclick = () => { soundOn = !soundOn; sb.innerHTML = icon(soundOn ? 'sound' : 'mute'); try { localStorage.setItem('morra_sound', soundOn ? '1' : '0'); } catch (e) {} };
 const play = k => soundOn && sfx(k);
 function say(text, pitch = 1) {
   if (!soundOn || !window.speechSynthesis) return;
@@ -106,15 +93,17 @@ function begin(settings, players, members, resume) {
   watchdog();
 }
 async function intro() {
-  const o = document.createElement('div'); o.className = 'overlay'; o.style.background = 'transparent'; o.style.backdropFilter = 'none';
+  const o = document.createElement('div'); o.className = 'overlay'; o.style.background = 'transparent';
   o.innerHTML = '<div class="intro">Pronti?</div>'; document.body.appendChild(o); play('pop');
+  // l'animazione è solo decorativa: i tempi del gioco li decide il timer, così non si blocca se la scheda è in background
+  timeline().add('.intro', { opacity: [0, 1], translateY: [16, 0], duration: 360 }).add('.intro', { opacity: 0, translateY: -12, duration: 300 }, '+=420');
   await sleep(1100); o.remove();
 }
 
 function drawScore() {
   const pl = (id, el) => {
     const p = G.info[id] || { name: '?', avatar: '❔', color: '#888' }, s = G.scores[id] || 0;
-    el.innerHTML = `${avatarHTML(p)}<div class="info"><div class="name">${esc(p.name)}${id === me.id ? ' (tu)' : ''}</div><div class="status"></div><div class="bar"><i style="width:${Math.min(100, s / G.target * 100)}%"></i></div></div><div class="pts">${s}</div>`;
+    el.innerHTML = `${avatarHTML(p)}<div class="info"><div class="name">${esc(p.name)}${id === me.id ? ' (tu)' : ''}</div><div class="status"></div><div class="bar"><i style="width:${Math.min(100, s / G.target * 100)}%"></i></div></div><div class="pts num">${s}</div>`;
   };
   pl(G.left, $('#plL')); pl(G.right, $('#plR'));
   $('#roundinfo').innerHTML = `<b>${G.n ? 'Mano ' + G.n : 'Si comincia'}</b>a ${G.target} punti`;
@@ -122,6 +111,25 @@ function drawScore() {
 function status(id, txt, ok) {
   const el = id === G.left ? $('#plL .status') : id === G.right ? $('#plR .status') : null;
   if (el) { el.textContent = txt; el.classList.toggle('ready', !!ok); }
+}
+
+// il punto: un "+1" parte dalla mano di chi ha indovinato e arriva sul suo punteggio, che scorre al nuovo valore
+function scoreFly(side, pl, from, to) {
+  const r = $('.hand-wrap', side).getBoundingClientRect(), t = $('.pts', pl).getBoundingClientRect();
+  side.classList.add('winner'); pl.classList.add('scored'); setTimeout(() => pl.classList.remove('scored'), 1600);
+  const el = document.createElement('div'); el.className = 'plus'; el.textContent = '+1'; document.body.appendChild(el);
+  const x0 = r.left + r.width / 2 - 24, y0 = r.top + r.height / 2 - 20;
+  el.style.left = x0 + 'px'; el.style.top = y0 + 'px';
+  timeline()
+    .add(el, { opacity: [0, 1], scale: [0, 1.4], rotate: [-20, 0], translateY: [8, -24], duration: 420, ease: 'outBack(2)' })
+    .add(el, { translateX: t.left + t.width / 2 - 24 - x0, translateY: t.top + t.height / 2 - 20 - y0, scale: .8, duration: 480, ease: 'inOutCubic' }, '+=100')
+    .add(el, { opacity: 0, scale: 1.6, duration: 160 });
+  setTimeout(() => el.remove(), 1400);
+  setTimeout(() => {
+    const p = $('.pts', pl); tween(p, from, to, { duration: 300 });
+    anim(p, { scale: [1.7, 1], duration: 600, ease: 'outElastic(1, .5)' });
+    const bar = $('.bar i', pl); if (bar) bar.style.width = Math.min(100, to / G.target * 100) + '%';
+  }, 860);
 }
 
 /* ---------- comandi ---------- */
@@ -221,9 +229,7 @@ async function resolve() {
   await sleep(250);
   const bub = (side, r) => { const el = $('.bubble', side); el.innerHTML = r.c ? `<b>${r.c}</b><small>${DIALETTO[r.c]}</small>` : `<b>…</b><small>${r.f ? 'zitto' : 'non ha buttato'}</small>`; el.classList.add('on'); };
   bub(L, a); play('pop');
-  if (a.c) say(PAROLA[a.c] + '!', 1.05);
   await sleep(320); bub(R, b); play('pop');
-  if (b.c) say(PAROLA[b.c] + '!', .8);
   await sleep(420);
 
   let winner = null, sum = null, txt;
@@ -248,8 +254,7 @@ async function resolve() {
   if (winner) {
     G.scores[winner] = (G.scores[winner] || 0) + 1;
     const side = winner === G.left ? L : R, pl = winner === G.left ? $('#plL') : $('#plR');
-    side.classList.add('winner'); drawScore(); pl.classList.add('scored'); $('.pts', pl).classList.add('bump');
-    setTimeout(() => pl.classList.remove('scored'), 1200);
+    scoreFly(side, pl, G.scores[winner] - 1, G.scores[winner]);
     play(winner === me.id ? 'win' : G.spectator ? 'pop' : 'lose');
   }
   G.lastMsg = performance.now();
@@ -271,7 +276,7 @@ function onOver(d) {
   if (won || G.spectator) confetti(); play(won ? 'win' : 'lose');
   const o = document.createElement('div'); o.className = 'overlay';
   o.innerHTML = `<div class="modal glass">${avatarHTML(w, true)}
-    <h2>${won ? 'Hai vinto!' : G.spectator ? `Vince ${esc(w.name)}` : `Ha vinto ${esc(w.name)}`}</h2>
+    <h2>${won ? 'Hai vinto' : G.spectator ? `Vince ${esc(w.name)}` : `Ha vinto ${esc(w.name)}`}</h2>
     <div class="final">${G.players.map(p => `<div>${esc(G.info[p]?.name)}<b>${G.scores[p]}</b></div>`).join('')}</div>
     <div style="display:flex;gap:10px;justify-content:center">
       ${room.isHost ? '<button class="btn primary again">Rivincita</button>' : '<span class="hint" style="align-self:center">L\'host può proporre la rivincita</span>'}

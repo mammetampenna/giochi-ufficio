@@ -20,7 +20,7 @@ export function mountLobby(root, opts) {
       <p class="hint">${esc(opts.subtitle || '')}</p>
       <div style="display:grid;gap:12px;margin-top:22px">
         <button class="btn primary create">Crea una stanza</button>
-        <div style="display:flex;gap:8px"><input class="field code" maxlength="5" placeholder="Codice stanza" style="text-transform:uppercase;letter-spacing:.2em;font-weight:700">
+        <div style="display:flex;gap:8px"><input class="field code" maxlength="5" placeholder="Codice" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;font-family:var(--mono);letter-spacing:.08em">
           <button class="btn join">Entra</button></div>
         ${opts.solo ? `<button class="btn solo">${esc(opts.solo.label)}</button>` : ''}
       </div></div>`;
@@ -76,7 +76,7 @@ export function mountLobby(root, opts) {
         ${host ? `<button class="btn primary start" ${can ? '' : 'disabled'}>Inizia</button>` : '<span class="hint">In attesa che l\'host avvii la partita…</span>'}
         <span class="hint" style="margin-left:auto">${n < opts.min ? `Servono almeno ${opts.min} giocatori` : n > opts.max ? `Massimo ${opts.max} giocatori` : `${n} giocator${n === 1 ? 'e' : 'i'}`}</span>
       </div></div>`;
-    $('.code-big', root).onclick = () => { navigator.clipboard.writeText(location.href).then(() => toast('Link copiato!')); };
+    $('.code-big', root).onclick = () => { navigator.clipboard.writeText(location.href).then(() => toast('Link copiato')); };
     $$('.pill[data-k]', root).forEach(b => b.onclick = () => {
       const s = opts.settings.find(x => x.key === b.dataset.k), v = s.options.find(o => String(o.v) === b.dataset.v).v;
       settings[b.dataset.k] = v; room.send('settings', { [b.dataset.k]: v }); saveRoom(room.code, { settings }); draw();

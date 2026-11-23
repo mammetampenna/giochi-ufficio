@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d0b1a">
+<title>Scarta!</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<link rel="stylesheet" href="../shared/ui.css">
+<style>
+  :root { --cw: clamp(70px, 7.4vw, 104px); --ch: calc(var(--cw) * 1.5); --tint: #7b6cff; }
+  .sc-card { width: var(--cw); height: var(--ch); position: relative; flex: none; }
+  .sc-card svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+
+  #board { position: fixed; inset: 0; overflow: hidden; }
+  /* alone del colore attivo dietro al tavolo */
+  #board::before { content: ''; position: absolute; left: 50%; top: 46%; width: min(80vw, 640px); aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--tint) 38%, transparent), transparent 62%); transition: background .8s; pointer-events: none; }
+
+  /* avversari in alto */
+  #opps { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); width: min(1100px, calc(100% - 24px)); display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 12px; z-index: 4; }
+  .opp { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line);
+    backdrop-filter: blur(10px); transition: box-shadow .4s, transform .4s var(--spring); }
+  .opp.turn { box-shadow: 0 0 0 3px var(--acc2), 0 0 30px -4px var(--acc2); transform: scale(1.06); }
+  .opp .nm { font-weight: 700; font-size: 14px; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opp .cnt { display: flex; align-items: center; gap: 6px; font: 700 13px var(--mono); color: var(--dim); }
+  .mini { display: flex; } .mini i { width: 12px; height: 18px; border-radius: 3px; background: #3a2f66; border: 1.5px solid #fff; }
+  .mini i + i { margin-left: -7px; }
+  .opp .flag { position: absolute; top: -10px; right: -8px; padding: 2px 8px; border-radius: 999px; background: var(--acc2); color: #241500; font-size: 11px; font-weight: 800; animation: popIn .4s var(--spring); }
+  .opp .catch { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 4px 12px; border-radius: 999px; font-weight: 800; font-size: 12px;
+    background: var(--acc); color: #fff; animation: wobble .6s var(--spring) infinite alternate; box-shadow: 0 6px 18px -4px var(--acc); }
+  @keyframes wobble { from { transform: translateX(-50%) rotate(-4deg); } to { transform: translateX(-50%) rotate(4deg) scale(1.06); } }
+  .opp .ring { position: absolute; inset: -3px; border-radius: 999px; pointer-events: none; }
+
+  /* centro: mazzo, scarti, verso di gioco */
+  #center { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: clamp(24px, 6vw, 64px); z-index: 3; }
+  #deck { position: relative; width: var(--cw); height: var(--ch); cursor: pointer; transition: transform .25s var(--spring); }
+  #deck:hover { transform: translateY(-4px) rotate(-2deg); }
+  #deck .sc-card { position: absolute; inset: 0; }
+  #deck.can { animation: nudge 1.2s var(--ease) infinite; }
+  @keyframes nudge { 50% { transform: translateY(-6px); } }
+  #deck .lbl { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); font: 700 12px var(--mono); color: var(--dim); white-space: nowrap; }
+  #pile { position: relative; width: var(--cw); height: var(--ch); }
+  #pile .sc-card { position: absolute; inset: 0; }
+  #dir { position: absolute; left: 50%; top: 50%; width: calc(var(--cw) * 3.6); aspect-ratio: 1; transform: translate(-50%, -50%); pointer-events: none; z-index: -1; }
+  #dir svg { width: 100%; height: 100%; animation: spin 18s linear infinite; }
+  #dir.ccw svg { animation-direction: reverse; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #colorDot { position: absolute; right: -14px; top: -14px; width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; z-index: 5; box-shadow: 0 6px 16px rgba(0,0,0,.4); transition: background .4s; }
+  #pending { position: absolute; left: 50%; top: calc(100% + 14px); transform: translateX(-50%); padding: 6px 14px; border-radius: 999px; background: var(--acc); color: #fff; font-weight: 800; white-space: nowrap; animation: popIn .4s var(--spring); }
+
+  /* la mia mano */
+  #me { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; justify-items: center; gap: 10px; padding: 0 12px max(16px, env(safe-area-inset-bottom)); }
+  .bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .bar .who { display: flex; align-items: center; gap: 8px; padding: 5px 14px 5px 5px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-weight: 700; transition: box-shadow .4s; }
+  .bar .who.turn { box-shadow: 0 0 0 3px var(--acc2), 0 0 30px -4px var(--acc2); }
+  .timer { width: 90px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .timer i { display: block; height: 100%; background: var(--grad); transform-origin: left; }
+  #ultima { background: linear-gradient(135deg, #ffc22e, #ff8a3d); color: #2a1500; border: 0; box-shadow: 0 8px 24px -6px rgba(255,170,40,.8); animation: wobble2 .7s var(--spring) infinite alternate; }
+  @keyframes wobble2 { to { transform: rotate(3deg) scale(1.05); } }
+  #hand { display: flex; justify-content: center; max-width: 100%; overflow-x: auto; overflow-y: visible; padding: 28px 12px 14px; scrollbar-width: none; }
+  #hand::-webkit-scrollbar { display: none; }
+  #hand .sc-card { margin-left: var(--ov, -18px); transition: transform .3s var(--spring), filter .3s, opacity .3s; cursor: pointer; }
+  #hand .sc-card:first-child { margin-left: 0; }
+  #hand.my .sc-card.ok { transform: translateY(-14px); }
+  #hand.my .sc-card.ok:hover { transform: translateY(-30px) rotate(-3deg) scale(1.06); z-index: 2; }
+  #hand.my .sc-card.no { filter: brightness(.55) saturate(.6); }
+  #hand.my .sc-card.no:hover { transform: translateY(-6px); }
+  .ghost { visibility: hidden; }
+  .fly { position: fixed; z-index: 60; pointer-events: none; }
+
+  /* scritte grosse per gli eventi */
+  .boom { position: fixed; inset: 0 0 6vh 0; z-index: 70; pointer-events: none; display: grid; place-content: center; justify-items: center; text-align: center; }
+  .boom .big { font: 800 clamp(64px, 13vw, 140px)/.9 var(--font); letter-spacing: -.04em; -webkit-text-stroke: 3px rgba(13,11,26,.55); paint-order: stroke fill;
+    background: var(--bg-grad, linear-gradient(180deg, #fff6c9, #ffc53d 45%, #ff8a3d)); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 8px 0 rgba(13,11,26,.5)) drop-shadow(0 18px 30px rgba(0,0,0,.5)); }
+  .boom .tag { margin-top: 10px; padding: 6px 16px; border-radius: 999px; font-weight: 800; font-size: clamp(15px, 2.4vw, 20px); background: #fff; color: #17142b; }
+  .stamp { position: fixed; z-index: 66; pointer-events: none; padding: 6px 14px; border-radius: 12px; border: 3px solid #fff; font-weight: 800; font-size: 20px; color: #fff; background: var(--acc); transform: rotate(-10deg); white-space: nowrap; }
+  .spark { position: fixed; z-index: 64; width: 12px; height: 12px; border-radius: 3px; pointer-events: none; }
+
+  /* scelta del colore */
+  .picker { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: rgba(8,6,18,.6); backdrop-filter: blur(6px); animation: fadeIn .2s; }
+  .picker .box { padding: 24px; text-align: center; }
+  .picker h3 { margin: 0 0 16px; font-size: 24px; }
+  .picker .cols { display: grid; grid-template-columns: repeat(2, 96px); gap: 14px; }
+  .picker button { height: 96px; border-radius: 24px; border: 4px solid #fff; font-weight: 800; color: #fff; font-size: 16px; text-shadow: 0 2px 0 rgba(0,0,0,.3); transition: transform .25s var(--spring); }
+  .picker button:hover { transform: scale(1.08) rotate(-3deg); }
+
+  .overlay { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: 16px; background: rgba(8,6,18,.6); backdrop-filter: blur(8px); animation: fadeIn .3s; }
+  .overlay .modal { width: min(500px, 100%); text-align: center; }
+  .overlay h2 { font-size: clamp(36px, 8vw, 52px); font-weight: 800; letter-spacing: -.03em; margin: 4px 0 18px; line-height: 1; }
+  .overlay h2 .l { display: inline-block; }
+  .overlay h2.win { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .rank { display: grid; gap: 8px; text-align: left; margin-bottom: 20px; max-height: 40vh; overflow: auto; }
+  .rk { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 16px; background: var(--panel); }
+  .rk b { margin-left: auto; font: 700 14px var(--mono); color: var(--dim); }
+  .rk.first { box-shadow: 0 0 0 2px var(--ok), 0 0 30px -8px var(--ok); }
+  .rk .pos { width: 26px; text-align: center; font-weight: 800; }
+
+  @media (max-width: 640px) {
+    :root { --cw: min(19vw, 78px); }
+    #opps { top: 58px; gap: 6px; }
+    .opp { padding: 4px 10px 4px 4px; gap: 6px; }
+    .opp .avatar { width: 28px; height: 28px; font-size: 15px; }
+    .opp .nm { max-width: 70px; font-size: 12px; }
+    .mini { display: none; }
+    #center { top: 44%; }
+    #hand { justify-content: flex-start; padding-top: 22px; }
+    #hand .sc-card { margin-left: var(--ovm, -30px); }
+    .timer { width: 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div id="lobby"></div>
+<div id="board" class="hidden">
+  <div id="opps"></div>
+  <div id="center">
+    <div id="deck"><span class="lbl"></span></div>
+    <div id="pile"><div id="colorDot"></div></div>
+    <div id="dir"><svg viewBox="0 0 200 200"><defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="rgba(255,255,255,.35)"/></marker></defs>
+      <path d="M100 8 A92 92 0 0 1 192 100" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-dasharray="6 8" marker-end="url(#ah)"/>
+      <path d="M100 192 A92 92 0 0 1 8 100" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="3" stroke-dasharray="6 8" marker-end="url(#ah)"/></svg></div>
+  </div>
+  <div id="me">
+    <div class="bar" id="bar"></div>
+    <div id="hand"></div>
+  </div>
+</div>
+<script type="module" src="scarta.js"></script>
+</body>
+</html>

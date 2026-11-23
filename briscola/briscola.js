@@ -2,6 +2,7 @@
 import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep } from '../shared/core.js';
 import { mountLobby } from '../shared/lobby.js';
 import { injectDefs, cardSVG, backSVG, SUIT_NAME, cardName } from '../shared/piacentine.js';
+import { anim, timeline, tween, stagger } from '../shared/motion.js';
 import { newDeck, winIndex, sumPts, botChoose, suit, obj } from './regole.js';
 
 injectDefs();
@@ -169,12 +170,12 @@ function build(st) {
   const piles = st.N === 2 ? { bottom: 0, top: 1 } : { bottom: 0, right: 1 };
   $('#seats').innerHTML = st.seats.map((id, s) => {
     const pos = posOf(s, st), mine = pos === 'bottom';
-    const team = s % 2, pile = piles[pos] !== undefined ? `<div class="pile empty" data-team="${team}"><span class="n">0</span></div>` : '';
+    const team = s % 2, pile = piles[pos] !== undefined ? `<div class="pile empty" data-team="${team}"></div>` : '';
     return `<div class="seat" data-pos="${pos}" data-seat="${s}">${pos === 'bottom' ? `<div class="who"></div>${pile}` : `<div class="who"></div>${mine ? '' : '<div class="backs"></div>'}${pile}`}</div>`;
   }).join('');
   $('#trick').classList.toggle('duo', st.N === 2);
-  $('#chip').classList.remove('hidden'); $('#board').dataset.bris = st.bris;
-  $('#chip').innerHTML = `<svg viewBox="0 0 100 100"><use href="#pc-${st.bris}" width="100" height="100"${st.bris === 'S' || st.bris === 'B' ? ' transform="rotate(35 50 50)"' : ''}/></svg>Briscola: ${SUIT_NAME[st.bris]}`;
+  $('#chip').classList.remove('hidden'); $('#board').dataset.bris = st.bris; $('#board').dataset.bris = st.bris;
+  $('#chip').innerHTML = `<svg viewBox="0 0 100 100"><use href="#pc-${st.bris}" width="100" height="100"${st.bris === 'S' || st.bris === 'B' ? ' transform="rotate(35 50 50)"' : ''}/></svg><span><span class="lbl">Briscola: </span>${SUIT_NAME[st.bris]}</span>`;
   $('#chip').classList.remove('flash'); void $('#chip').offsetWidth; $('#chip').classList.add('flash');
 }
 
@@ -189,7 +190,7 @@ function renderAll(st, dealing) {
     const bk = $('.backs', el);
     if (bk) bk.innerHTML = dealing ? '' : backHTML('small').repeat(st.counts[s]);
   });
-  $$('.pile').forEach(p => { const n = st.taken[+p.dataset.team]; p.classList.toggle('empty', !n); p.innerHTML = (n ? backHTML('small') + backHTML('small') : '') + `<span class="n">${n}</span>`; if (n) p.lastElementChild.previousElementSibling.style.transform = 'rotate(8deg)'; });
+  $$('.pile').forEach(p => { const n = st.taken[+p.dataset.team]; p.classList.toggle('empty', !n); p.innerHTML = n ? backHTML('small') + backHTML('small') : ''; if (n) p.lastElementChild.style.transform = 'rotate(8deg)'; });
   // mazzo
   const dc = st.deckCount;
   $('#deck .stack').innerHTML = Array.from({ length: Math.min(Math.max(dc - 1, 0), 6) }, (_, i) => `<div class="card" style="transform:translate(${-i * 1.5}px,${-i * 1.5}px)">${backSVG()}</div>`).join('');
@@ -203,7 +204,7 @@ function myTurn(st = C.st) { return st && !C.spect && st.phase === 'play' && st.
 function renderHand(st, ghosts = new Set()) {
   const my = myTurn(st);
   $('#hand').className = my ? 'my' : '';
-  $('#hand').innerHTML = C.hand.map((c, i) => `<div class="card${ghosts.has(c) ? ' ghost' : ''}" data-c="${c}" title="${cardName(obj(c))}">${cardSVG(obj(c))}<span class="k">${i + 1}</span></div>`).join('');
+  $('#hand').innerHTML = C.hand.map((c, i) => `<div class="card${ghosts.has(c) ? ' ghost' : ''}" data-c="${c}" title="${cardName(obj(c))}">${cardSVG(obj(c))}<kbd class="k">${i + 1}</kbd></div>`).join('');
   $$('#hand .card').forEach(el => el.onclick = () => myPlay(el.dataset.c));
   $('.banner')?.remove();
   if (my) { const b = document.createElement('div'); b.className = 'banner'; b.textContent = 'Tocca a te'; $('#board').appendChild(b); }
@@ -248,23 +249,75 @@ async function playAnim(t, st) {
   await fly(faceHTML(t.c), from, to, { ms: 380, rot: pos === 'bottom' ? 0 : 20 });
   slot.style.visibility = '';
 }
+// ogni presa: le fiche dei punti volano al centro, poi esplode il numero grande (o "liscio"), poi le carte vanno alla pila
 async function collectAnim(st) {
-  const { w, pts } = st.last, team = w % 2;
-  const wi = st.last.cards.findIndex(t => t.p === w), slots = $$('#trick .slot');
+  const { w, pts } = st.last, team = w % 2, mine = !C.spect && team === C.mySeat % 2;
+  const slots = $$('#trick .slot'), cards = st.last.cards;
+  const wi = cards.findIndex(t => t.p === w);
   if (slots[wi]) slots[wi].classList.add('win');
-  const line = document.createElement('div'); line.className = 'toastline';
-  line.textContent = `Prende ${st.info[st.seats[w]].name}${pts ? ` · ${pts} punt${pts === 1 ? 'o' : 'i'}` : ' · liscio'}`;
-  $('#board').appendChild(line);
-  sfx(team === C.mySeat % 2 && !C.spect ? 'pop' : 'tick');
-  await sleep(850);
+  const who = st.info[st.seats[w]].name, byBris = suit(cards[wi].c) === st.bris && suit(cards[0].c) !== st.bris;
+  await sleep(380);
+
+  // 1. una fiche dorata da ogni carta che vale punti, verso il centro
+  const valued = slots.map((sl, i) => ({ sl, c: cards[i]?.c })).filter(x => x.c && pointsOf(x.c));
+  const cx = innerWidth / 2, cy = innerHeight * .48;
+  const chips = valued.map(({ sl, c }) => {
+    const r = sl.firstElementChild.getBoundingClientRect();
+    const el = document.createElement('div'); el.className = 'pts-chip'; el.textContent = '+' + pointsOf(c);
+    document.body.appendChild(el);
+    const x = r.left + r.width / 2 - 24, y = r.top + r.height * .25;
+    el.style.left = x + 'px'; el.style.top = y + 'px'; el._dx = cx - 24 - x; el._dy = cy - 14 - y;
+    return el;
+  });
+  if (chips.length) {
+    timeline()
+      .add(chips, { opacity: [0, 1], scale: [0, 1.2], translateY: [0, -26], duration: 360, delay: stagger(80), ease: 'outBack(2)' })
+      .add(chips, { translateX: el => el._dx, translateY: el => el._dy, scale: .5, duration: 380, delay: stagger(60), ease: 'inCubic' }, '+=80')
+      .add(chips, { opacity: 0, duration: 80 });
+    sfx('pop');
+    await sleep(360 + 80 * (chips.length - 1) + 80 + 380 + 60 * (chips.length - 1));
+  }
+  setTimeout(() => chips.forEach(c => c.remove()), 600);
+
+  // 2. il numero grande
+  const boom = document.createElement('div');
+  boom.className = 'boom' + (mine || C.spect ? '' : ' theirs') + (pts ? '' : ' zero');
+  const tag = !pts ? `prende ${who}` : pts >= 20 ? `Super carico per ${who}` : pts >= 10 ? `Carico per ${who}` : byBris ? `${who} taglia con la briscola` : `prende ${who}`;
+  boom.innerHTML = `<span class="big">${pts ? '+' + pts : 'Liscio'}</span><span class="tag">${esc(tag)}</span>`;
+  document.body.appendChild(boom);
+  const big = $('.big', boom), tg = $('.tag', boom);
+  timeline()
+    .add(big, { scale: [0, 1], rotate: [pts ? -14 : 8, 0], duration: pts >= 10 ? 900 : 650, ease: 'outElastic(1, .55)' })
+    .add(tg, { opacity: [0, 1], translateY: [16, 0], scale: [.6, 1], duration: 380, ease: 'outBack(2)' }, '-=650');
+  if (pts >= 10) { burst(cx, cy, pts >= 20 ? 34 : 22); sfx('win'); } else sfx(pts ? 'pop' : 'tick');
+  if (pts >= 10) anim('#board', { translateX: [0, -8, 8, -5, 5, 0], duration: 420, ease: 'linear' });
+  await sleep(pts >= 10 ? 1150 : 850);
+
+  // 3. il numero vola verso chi ha preso, le carte vanno coperte sulla pila
   const pile = $(`.pile[data-team="${team}"]`);
-  const target = pile ? rectOf(pile) : rectOf($(`.seat[data-seat="${w}"] .who`));
+  const target = pile && pile.offsetParent ? rectOf(pile) : rectOf($(`.seat[data-seat="${w}"] .who`));
+  anim(boom, { translateX: target.left + target.width / 2 - cx, translateY: target.top + target.height / 2 - cy, scale: .2, opacity: [1, 0], duration: 520, ease: 'inBack(1.5)' });
+  setTimeout(() => boom.remove(), 600);
   const { w: cw, h: ch } = cardSize();
-  // le carte volano dal tavolo alla pila di chi ha preso
   const rects = slots.map(s => rectOf(s.firstElementChild)); slots.forEach(s => s.remove());
   await Promise.all(rects.map((r, i) => sleep(i * 60).then(() => fly(backHTML(), r, center(target, cw * .5, ch * .5), { ms: 420, rot: -10 }))));
-  line.remove(); sfx('card');
+  sfx('card');
 }
+// coriandoli che esplodono dal centro per i carichi
+function burst(x, y, n) {
+  const cols = ['#ff5b7f', '#ffb23f', '#3fd6c6', '#7b6cff', '#3fdc8a', '#fff'];
+  const ps = Array.from({ length: n }, (_, i) => {
+    const el = document.createElement('div'); el.className = 'spark';
+    el.style.left = x - 6 + 'px'; el.style.top = y - 6 + 'px'; el.style.background = cols[i % cols.length];
+    document.body.appendChild(el); return el;
+  });
+  anim(ps, {
+    translateX: () => (Math.random() - .5) * 520, translateY: () => (Math.random() - .7) * 420, rotate: () => Math.random() * 720,
+    scale: [{ to: 1.3, duration: 200 }, { to: 0, duration: 700 }], duration: 900, ease: 'outCubic',
+  });
+  setTimeout(() => ps.forEach(p => p.remove()), 1000);
+}
+const pointsOf = c => ({ 1: 11, 3: 10, 10: 4, 9: 3, 8: 2 }[+c.slice(1)] || 0);
 async function drawAnim(st, prev, newHand) {
   if (!prev.deckCount) return;
   const deckR = rectOf($('#deck'));
@@ -317,19 +370,21 @@ async function dealAnim(st, newHand) {
 function showEnd(st) {
   const r = st.result, myTeam = C.mySeat % 2;
   const won = !C.spect && r.win === myTeam, lost = !C.spect && r.win === 1 - myTeam;
-  const title = r.win < 0 ? 'Patta! 60 a 60' : C.spect ? `Vince ${teamName(st, r.win)}` : won ? (st.N === 4 ? 'Avete vinto!' : 'Hai vinto!') : (st.N === 4 ? 'Hanno vinto loro' : `Ha vinto ${teamName(st, r.win)}`);
-  if (won || C.spect && r.win >= 0) confetti();
+  const title = r.win < 0 ? 'Patta, 60 a 60' : C.spect ? `Vince ${teamName(st, r.win)}` : won ? (st.N === 4 ? 'Avete vinto' : 'Hai vinto') : (st.N === 4 ? 'Hanno vinto loro' : `Ha vinto ${teamName(st, r.win)}`);
+  if (won || C.spect && r.win >= 0) { confetti(160); setTimeout(() => confetti(120), 700); setTimeout(() => confetti(120), 1400); }
   sfx(won ? 'win' : lost ? 'lose' : 'pop');
   const o = document.createElement('div'); o.className = 'overlay';
-  o.innerHTML = `<div class="modal glass"><h2>${title}</h2>
-    <div class="teams">${[0, 1].map(t => `<div class="tm${r.win === t ? ' w' : ''}"><div class="row1">${st.seats.filter((_, i) => i % 2 === t).map(id => avatarHTML(st.info[id])).join('')}
-      <span>${esc(teamName(st, t))}</span><b data-to="${r.pts[t]}">0</b></div><div class="bar"><i style="background:${TEAM[t]}" data-w="${r.pts[t] / 120 * 100}"></i></div></div>`).join('')}</div>
-    <p class="match">Partite vinte: ${esc(teamName(st, 0))} ${st.match[0]} – ${st.match[1]} ${esc(teamName(st, 1))}</p>
-    <div style="display:flex;gap:10px;justify-content:center">${room.isHost ? '<button class="btn primary again">Rivincita</button>' : '<span class="hint" style="align-self:center">L\'host può avviare la rivincita</span>'}<a class="btn" href="../">Menu</a></div></div>`;
+  o.innerHTML = `<div class="modal glass">${won ? '<div style="font-size:56px">🏆</div>' : ''}<h2 class="${won ? 'win' : ''}">${[...title].map(ch => `<span class="l">${ch === ' ' ? '&nbsp;' : esc(ch)}</span>`).join('')}</h2>
+    <div class="teams">${[0, 1].map(t => `<div class="tmf${r.win === t ? ' w' : ''}"><div class="row1">${st.seats.filter((_, i) => i % 2 === t).map(id => avatarHTML(st.info[id])).join('')}
+      <span>${esc(teamName(st, t))}</span><b class="num" data-to="${r.pts[t]}">0</b></div><div class="bar"><i style="background:${TEAM[t]};width:100%;transform-origin:left;transform:scaleX(0)" data-w="${r.pts[t] / 120}"></i></div></div>`).join('')}</div>
+    <p class="match">Partite vinte: ${esc(teamName(st, 0))} <span class="num">${st.match[0]} – ${st.match[1]}</span> ${esc(teamName(st, 1))}</p>
+    <div class="row-actions" style="justify-content:center">${room.isHost ? '<button class="btn primary again">Rivincita</button>' : '<span class="hint" style="align-self:center">L\'host può avviare la rivincita</span>'}<a class="btn" href="../">Menu</a></div></div>`;
   document.body.appendChild(o);
-  requestAnimationFrame(() => $$('.bar i', o).forEach(i => i.style.width = i.dataset.w + '%'));
-  $$('b[data-to]', o).forEach(b => { const to = +b.dataset.to, t0 = performance.now();
-    (function step(t) { const k = Math.min(1, (t - t0) / 1600); b.textContent = Math.round(to * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(step); })(t0); });
+  anim($$('h2 .l', o), { translateY: [40, 0], scale: [.3, 1], rotate: [-20, 0], opacity: [0, 1], duration: 700, delay: stagger(35), ease: 'outBack(2.2)' });
+  anim($('.modal', o), { scale: [.85, 1], duration: 600, ease: 'outBack(1.6)' });
+  // le barre si riempiono e i punti contano insieme; la riga a metà è la soglia dei 60
+  $$('.bar i', o).forEach((i, k) => anim(i, { scaleX: [0, +i.dataset.w], duration: 1400, delay: 200 + k * 120 }));
+  $$('b[data-to]', o).forEach((b, k) => tween(b, 0, +b.dataset.to, { duration: 1400, delay: 200 + k * 120 }));
   const again = $('.again', o);
   if (again) again.onclick = () => {
     if (!room.solo) saveRoom(room.code, { status: 'playing' });
