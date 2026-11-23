@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prova voci</title>
+<link rel="stylesheet" href="../../shared/ui.css">
+<style>
+  main { width: min(820px, 100%); margin: 0 auto; padding: 80px var(--gutter) 40px; }
+  h1 { margin: 0 0 6px; font-size: 40px; }
+  .v { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 16px; margin: 10px 0; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); }
+  .v b { width: 110px; font-size: 18px; }
+</style>
+</head>
+<body>
+<div class="aurora"><i></i><i></i><i></i></div>
+<main>
+  <h1>Prova voci</h1>
+  <p class="hint">Ognuna dice «Setti! … Tutta!». Prova gli effetti e scegli le due voci per i due giocatori.</p>
+  <div id="list"></div>
+</main>
+<script>
+const VOCI = [['Grandpa', 'Nonno'], ['Grandma', 'Nonna'], ['Rocko', 'Rocko'], ['Eddy', 'Eddy'], ['Reed', 'Reed'], ['Shelley', 'Shelley'], ['Federica', 'Federica'], ['Paola', 'Paola']];
+const FX = [['normale', 1, 0], ['scoiattolo', 1.45, 0], ['orco', .72, 0], ['eco', 1, 1]];
+let ac;
+async function play(file, rate, echo) {
+  ac ||= new AudioContext();
+  const buf = await ac.decodeAudioData(await (await fetch(file + '.m4a')).arrayBuffer());
+  const src = ac.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  const g = ac.createGain(); g.gain.value = 1.2; src.connect(g); g.connect(ac.destination);
+  if (echo) { const d = ac.createDelay(); d.delayTime.value = .18; const fb = ac.createGain(); fb.gain.value = .45; g.connect(d); d.connect(fb); fb.connect(d); d.connect(ac.destination); }
+  src.start();
+}
+document.getElementById('list').innerHTML = VOCI.map(([f, n]) => `<div class="v"><b>${n}</b>${FX.map(([l, r, e]) => `<button class="btn small" onclick="play('${f}', ${r}, ${e})">${l}</button>`).join('')}</div>`).join('');
+</script>
+</body>
+</html>
