@@ -1,5 +1,5 @@
 // Morra calabrese online: ognuno butta 1–5 dita e chiama un numero 2–10; chi indovina la somma fa punto.
-import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, sha, sfx, confetti, sleep, icon } from '../shared/core.js';
+import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, sha, sfx, confetti, sleep, icon, floatBackdrop } from '../shared/core.js';
 import { HAND, setFingers, handStyles } from '../shared/mano.js';
 import { anim, timeline, tween } from '../shared/motion.js';
 import { mountLobby } from '../shared/lobby.js';
@@ -11,16 +11,32 @@ const BOT = { id: 'bot', name: 'Compare Turi', avatar: '🤖', color: '#2c5aa6' 
 mountTopbar();
 
 handStyles();
+floatBackdrop([HAND('#ff5b7f'), HAND('#3fd6c6'), HAND('#ffb23f'), HAND('#7b6cff')], 12);
 
 /* ---------- stato ---------- */
-let room = null, me = getProfile(), soundOn = true;
+let room = null, me = getProfile(), soundOn = true, voicesOn = true;
 const G = { players: [], info: {}, scores: {}, n: 0, T: 5, target: 11, phase: 'idle', pick: { f: null, c: null }, salt: '', commits: {}, reveals: {}, timer: null, lastMsg: 0, over: false };
 const L = $('#sideL'), R = $('#sideR');
 window.__morra = G; // per i test
 
-try { soundOn = localStorage.getItem('morra_sound') !== '0'; } catch (e) {}
-const sb = $('#sound'); sb.innerHTML = icon(soundOn ? 'sound' : 'mute');
-sb.onclick = () => { soundOn = !soundOn; sb.innerHTML = icon(soundOn ? 'sound' : 'mute'); try { localStorage.setItem('morra_sound', soundOn ? '1' : '0'); } catch (e) {} };
+try { soundOn = localStorage.getItem('morra_sound') !== '0'; voicesOn = localStorage.getItem('morra_voices') !== '0'; } catch (e) {}
+// impostazioni: voci (le grida) e suoni (colpi, pop) si accendono e spengono separatamente
+const sb = $('#sound'); sb.innerHTML = icon('gear'); sb.title = 'Impostazioni audio';
+sb.onclick = e => {
+  e.stopPropagation();
+  let pop = $('.audio-pop'); if (pop) { pop.remove(); return; }
+  pop = document.createElement('div'); pop.className = 'audio-pop glass';
+  const draw = () => {
+    pop.innerHTML = `<b>Audio</b>
+      <label class="tgl"><span>Voci che gridano i numeri</span><input type="checkbox" id="optV" ${voicesOn ? 'checked' : ''}><i></i></label>
+      <label class="tgl"><span>Suoni del gioco</span><input type="checkbox" id="optS" ${soundOn ? 'checked' : ''}><i></i></label>`;
+    $('#optV', pop).onchange = ev => { voicesOn = ev.target.checked; save(); if (voicesOn) loadVoices(G.voices || ['m', 'f']); };
+    $('#optS', pop).onchange = ev => { soundOn = ev.target.checked; save(); };
+  };
+  const save = () => { try { localStorage.setItem('morra_sound', soundOn ? '1' : '0'); localStorage.setItem('morra_voices', voicesOn ? '1' : '0'); } catch (e) {} };
+  draw(); document.body.appendChild(pop);
+  setTimeout(() => document.addEventListener('click', function close(ev) { if (!pop.contains(ev.target)) { pop.remove(); document.removeEventListener('click', close); } }), 0);
+};
 const play = k => soundOn && sfx(k);
 // grida generate con ElevenLabs, quattro voci: m = uomo, f = donna (accento siciliano), a = anziano, n = anziana.
 // A ogni partita ognuno dei due giocatori pesca una voce a caso; il seme arriva con "start", così tutti sentono le stesse voci.
@@ -41,7 +57,7 @@ function loadVoices(sets) {
   }
 }
 function shout(id, n) {
-  if (!soundOn || !n || !vctx) return;
+  if (!voicesOn || !n || !vctx) return;
   const buf = VOX[(G.voices?.[G.players.indexOf(id)] || 'm') + n]; if (!buf || buf === 'loading') return;
   if (vctx.state === 'suspended') vctx.resume();
   const src = vctx.createBufferSource(), g = vctx.createGain(); g.gain.value = 1.3;
@@ -92,7 +108,7 @@ function startSolo() {
 
 /* ---------- inizio partita ---------- */
 function begin(settings, players, members, resume) {
-  me = getProfile(); G.lastMsg = performance.now() + 2000; G.voices ||= pickVoices(); loadVoices(G.voices);
+  me = getProfile(); G.lastMsg = performance.now() + 2000; G.voices ||= pickVoices(); if (voicesOn) loadVoices(G.voices);
   G.players = players; G.target = settings.target; G.T = settings.speed; G.over = false;
   if (members) members.forEach(m => { if (players.includes(m.id)) G.info[m.id] = { id: m.id, name: m.name, avatar: m.avatar, color: m.color }; });
   if (!resume) { G.scores = Object.fromEntries(players.map(p => [p, 0])); G.n = 0; }
@@ -247,8 +263,10 @@ async function resolve() {
   play('thump');
   await sleep(250);
   const bub = (side, r) => { const el = $('.bubble', side); el.innerHTML = r.c ? `<b>${r.c}</b><small>${DIALETTO[r.c]}</small>` : `<b>…</b><small>${r.f ? 'zitto' : 'non ha buttato'}</small>`; el.classList.add('on'); };
+  // si grida insieme, come al tavolo: la seconda voce parte un attimo dopo la prima
   bub(L, a); play('pop'); shout(G.left, a.c);
-  await sleep(a.c && b.c && soundOn ? 650 : 320); bub(R, b); play('pop'); shout(G.right, b.c);
+  await sleep(140); bub(R, b); play('pop'); shout(G.right, b.c);
+  if (voicesOn) await sleep(500);
   await sleep(420);
 
   let winner = null, sum = null, txt;

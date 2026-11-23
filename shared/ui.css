@@ -1,5 +1,4 @@
 /* Stile comune: colorato e giocoso (per le giornate grigie d'ufficio), funziona anche da telefono */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@500;700&display=swap');
 
 @view-transition { navigation: auto; }
 
@@ -47,14 +46,19 @@ input { font: inherit; color: inherit; }
 
 /* sfondo animato: macchie di colore sfocate che si muovono lente */
 .aurora { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+/* macchie fatte con sfumature radiali (niente filtro blur: sui telefoni il blur grande è lentissimo) */
 .aurora i {
-  position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%;
-  filter: blur(90px); opacity: .38; mix-blend-mode: screen;
-  animation: blob 26s var(--ease) infinite alternate;
+  position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; opacity: .5;
+  animation: blob 26s var(--ease) infinite alternate; will-change: transform;
 }
-.aurora i:nth-child(1) { background: var(--acc4); left: -15vmax; top: -20vmax; }
-.aurora i:nth-child(2) { background: var(--acc); right: -20vmax; top: 10vmax; animation-duration: 32s; animation-delay: -8s; }
-.aurora i:nth-child(3) { background: var(--acc3); left: 20vmax; bottom: -30vmax; animation-duration: 38s; animation-delay: -15s; opacity: .25; }
+.aurora i:nth-child(1) { background: radial-gradient(circle, var(--acc4) 0, transparent 65%); left: -20vmax; top: -25vmax; }
+.aurora i:nth-child(2) { background: radial-gradient(circle, var(--acc) 0, transparent 65%); right: -25vmax; top: 5vmax; animation-duration: 32s; animation-delay: -8s; opacity: .42; }
+.aurora i:nth-child(3) { background: radial-gradient(circle, var(--acc3) 0, transparent 65%); left: 15vmax; bottom: -35vmax; animation-duration: 38s; animation-delay: -15s; opacity: .3; }
+/* sui telefoni niente vetro sfocato dietro ai pannelli: costa troppo */
+@media (hover: none), (max-width: 700px) {
+  .glass, .back, .me-chip, .modal-bg, .overlay { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .glass { background: rgba(28, 24, 52, .86); }
+}
 .aurora::after {
   content: ''; position: absolute; inset: 0; opacity: .07;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -210,3 +214,34 @@ a.btn { color: var(--text); } a.btn.primary { color: #1a0d14; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* icona "chi è online" nella barra in alto e pannello a comparsa */
+.online-btn { position: relative; margin-left: auto; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--panel); border: 1px solid var(--line); color: var(--dim); transition: transform .25s var(--spring), color .2s; }
+.online-btn:hover { transform: scale(1.08); color: var(--text); }
+.online-btn.some { color: var(--text); }
+.online-btn .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center;
+  font: 700 11px/1 var(--mono); color: #0c2a1b; background: var(--ok); box-shadow: 0 0 0 3px var(--bg); animation: popIn .4s var(--spring); }
+.online-btn + .me-chip { margin-left: 0; }
+.online-pop { position: fixed; top: 60px; right: var(--gutter); z-index: 110; width: min(360px, calc(100vw - 24px)); max-height: min(70vh, 520px); overflow: auto;
+  padding: 14px; animation: popIn .35s var(--spring); box-shadow: 0 24px 60px -12px rgba(0,0,0,.7); background: #1d1838 !important; border-color: var(--line2); }
+.online-pop .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.online-pop .hd small { color: var(--dim); }
+.online-pop .hd .x { margin-left: auto; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; color: var(--dim); }
+.online-pop .list { display: grid; gap: 6px; }
+.online-pop .row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 14px; background: var(--panel); }
+.online-pop .row .t { display: grid; flex: 1; min-width: 0; line-height: 1.2; }
+.online-pop .row .t small { color: var(--dim); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.online-pop .act { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--panel2); color: var(--text); text-decoration: none; }
+.online-pop .act.go { background: var(--grad); color: #1a0d14; }
+.online-pop .empty { color: var(--dim); font-size: 14px; margin: 4px 0; }
+
+/* sfondo a tema delle schermate iniziali dei giochi */
+.backdrop { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.backdrop .fl { position: absolute; transform: translate(-50%, -50%) rotate(var(--r)); animation: drift var(--d) ease-in-out var(--dl) infinite alternate; filter: drop-shadow(0 10px 20px rgba(0,0,0,.4)); }
+.backdrop .fl > * { width: 100%; height: auto; display: block; }
+@keyframes drift { to { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(calc(var(--r) * -1)); } }
+body:has(#lobby.hidden) .backdrop { display: none; }
+#lobby { position: relative; z-index: 1; }
+.lobby h1 { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800; letter-spacing: -.03em; }
+.lobby { box-shadow: 0 30px 80px -20px rgba(0,0,0,.7); }

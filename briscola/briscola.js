@@ -1,11 +1,12 @@
 // Briscola online con carte piacentine. L'host tiene il mazzo e decide; gli altri inviano solo la carta che giocano.
-import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep } from '../shared/core.js';
+import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep, floatBackdrop } from '../shared/core.js';
 import { mountLobby } from '../shared/lobby.js';
 import { injectDefs, cardSVG, backSVG, SUIT_NAME, cardName } from '../shared/piacentine.js';
 import { anim, timeline, tween, stagger } from '../shared/motion.js';
 import { newDeck, winIndex, sumPts, botChoose, suit, obj } from './regole.js';
 
 injectDefs();
+floatBackdrop(['D1', 'C1', 'S1', 'B1', 'D10', 'C9', 'S8', 'B3'].map(c => cardSVG(obj(c))).concat([backSVG()]), 14);
 mountTopbar();
 const BOTS = [{ name: 'Compare Turi', avatar: '🤖', color: '#3fd6c6' }, { name: 'Comare Nina', avatar: '👵', color: '#ffb23f' }, { name: 'Zio Peppe', avatar: '🧔', color: '#7b6cff' }];
 const TEAM = ['#ffb23f', '#3fd6c6'];

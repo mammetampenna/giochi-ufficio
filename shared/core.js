@@ -1,9 +1,18 @@
 // Base comune: profilo giocatore, avvisi, Supabase e stanze in tempo reale
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
-
 export const SB_URL = 'https://agwmdkrkfydgfzghwspv.supabase.co';
 export const SB_KEY = 'sb_publishable_5edj9ayGro2KPEgrUsaNZg_KWDi9mi_';
-export const sb = createClient(SB_URL, SB_KEY, { auth: { persistSession: false }, realtime: { params: { eventsPerSecond: 20 } } });
+// Supabase si carica solo quando serve, da un unico file nel sito (vendor/supabase.js):
+// così le pagine si aprono subito anche da telefono, senza aspettare la libreria.
+let sbP;
+export function getSb() {
+  return sbP ||= new Promise((res, rej) => {
+    const make = () => res(window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false }, realtime: { params: { eventsPerSecond: 20 } } }));
+    if (window.supabase) return make();
+    const sc = document.createElement('script'); sc.src = new URL('../vendor/supabase.js', import.meta.url).href; sc.async = true;
+    sc.onload = make; sc.onerror = () => { sbP = null; rej(new Error('Supabase non raggiungibile')); };
+    document.head.appendChild(sc);
+  });
+}
 
 export const $ = (s, el = document) => el.querySelector(s);
 export const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -51,6 +60,9 @@ const IC = {
   copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
 };
 export const icon = (n, cls = '') => `<svg class="ico ${cls}" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || ''}</svg>`;
 
@@ -96,23 +108,23 @@ export async function createRoom(game, settings = {}) {
   const me = getProfile();
   for (let i = 0; i < 5; i++) {
     const code = newCode();
-    const { error } = await sb.from('game_rooms').insert({ code, game, host_id: me.id, host_name: me.name, settings });
+    const { error } = await (await getSb()).from('game_rooms').insert({ code, game, host_id: me.id, host_name: me.name, settings });
     if (!error) return code;
     if (error.code !== '23505') throw new Error(error.message);
   }
   throw new Error('Impossibile creare la stanza');
 }
 export async function findRoom(code) {
-  const { data, error } = await sb.from('game_rooms').select('*').eq('code', code.toUpperCase()).maybeSingle();
+  const { data, error } = await (await getSb()).from('game_rooms').select('*').eq('code', code.toUpperCase()).maybeSingle();
   if (error) throw new Error(error.message);
   return data;
 }
 export async function saveRoom(code, patch) {
-  const { error } = await sb.from('game_rooms').update(patch).eq('code', code);
+  const { error } = await (await getSb()).from('game_rooms').update(patch).eq('code', code);
   if (error) console.warn('salvataggio stanza', error.message);
 }
 export async function saveResult(game, room_code, players, winner) {
-  const { error } = await sb.from('game_results').insert({ game, room_code, players, winner });
+  const { error } = await (await getSb()).from('game_results').insert({ game, room_code, players, winner });
   if (error) console.warn('salvataggio risultato', error.message);
 }
 
@@ -126,9 +138,6 @@ export async function saveResult(game, room_code, players, winner) {
 export class Room {
   constructor(code, row) {
     this.code = code; this.row = row; this.me = getProfile(); this.members = []; this.handlers = {}; this.joinedAt = Date.now();
-    this.ch = sb.channel('gu:' + code, { config: { broadcast: { self: false, ack: false }, presence: { key: this.me.id } } });
-    this.ch.on('presence', { event: 'sync' }, () => this._sync());
-    this.ch.on('broadcast', { event: 'm' }, ({ payload }) => this._recv(payload));
   }
   on(type, fn) { (this.handlers[type] ||= []).push(fn); return this; }
   emit(type, data, from) { (this.handlers[type] || []).forEach(f => f(data, from ?? this.me.id)); }
@@ -138,7 +147,11 @@ export class Room {
     this.members = Object.values(st).map(a => a[0]).sort((a, b) => a.at - b.at);
     this.emit('members', this.members);
   }
-  join() {
+  async join() {
+    this.sb = await getSb();
+    this.ch = this.sb.channel('gu:' + this.code, { config: { broadcast: { self: false, ack: false }, presence: { key: this.me.id } } });
+    this.ch.on('presence', { event: 'sync' }, () => this._sync());
+    this.ch.on('broadcast', { event: 'm' }, ({ payload }) => this._recv(payload));
     return new Promise((res, rej) => {
       const to = setTimeout(() => rej(new Error('Connessione in tempo reale non riuscita')), 10000);
       this.ch.subscribe(async st => {
@@ -151,7 +164,7 @@ export class Room {
     });
   }
   send(type, data) {
-    this.ch.send({ type: 'broadcast', event: 'm', payload: { t: type, d: data, f: this.me.id } });
+    this.ch?.send({ type: 'broadcast', event: 'm', payload: { t: type, d: data, f: this.me.id } });
   }
   // invia agli altri e lo elabora anche localmente
   both(type, data) { this.send(type, data); this.emit(type, data, this.me.id); }
@@ -161,7 +174,7 @@ export class Room {
   }
   get isHost() { return this.hostId === this.me.id; }
   member(id) { return this.members.find(m => m.id === id); }
-  leave() { try { this.ch.untrack(); sb.removeChannel(this.ch); } catch (e) {} }
+  leave() { try { this.ch.untrack(); this.sb.removeChannel(this.ch); } catch (e) {} }
 }
 
 /* ---------- impegno e rivelazione (per mosse simultanee) ---------- */
@@ -219,12 +232,45 @@ export function mountTopbar({ back = true } = {}) {
   const draw = () => {
     const p = getProfile();
     bar.innerHTML = (back ? `<a class="back" href="${siteRoot()}">${icon('back')}Giochi</a>` : '')
+      + `<button class="online-btn" aria-label="Chi è online">${icon('users')}<span class="badge hidden"></span></button>`
       + `<button class="me-chip">${avatarHTML(p)}<span>${esc(p.name || 'Profilo')}</span></button>`;
     $('.me-chip', bar).onclick = () => editProfile();
+    $('.online-btn', bar).onclick = e => { e.stopPropagation(); toggleOnline(); };
+    updateBadge();
+  };
+  // pallino con il numero di colleghi online sull'icona
+  const updateBadge = () => {
+    const b = $('.online-btn .badge', bar); if (!b) return;
+    const n = onlineList().filter(o => o.id !== getProfile().id).length;
+    b.textContent = n; b.classList.toggle('hidden', !n);
+    $('.online-btn', bar).classList.toggle('some', n > 0);
   };
   draw(); window.addEventListener('profile', draw);
+  window.addEventListener('online', () => { updateBadge(); if ($('.online-pop')) drawOnlinePanel(); });
   document.body.prepend(bar);
   return bar;
+}
+// pannello a comparsa con i colleghi online: cosa fanno, "Entra" nella loro stanza, saluto
+function toggleOnline() {
+  const old = $('.online-pop'); if (old) { old.remove(); return; }
+  const pop = document.createElement('div'); pop.className = 'online-pop glass';
+  document.body.appendChild(pop); drawOnlinePanel();
+  setTimeout(() => document.addEventListener('click', function close(e) { if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener('click', close); } }), 0);
+}
+function drawOnlinePanel() {
+  const pop = $('.online-pop'); if (!pop) return;
+  const me = getProfile(), list = onlineList().filter(o => o.id !== me.id), root = siteRoot();
+  pop.innerHTML = `<div class="hd"><span class="dot"></span><b>Online ora</b><small>${list.length || ''}</small><button class="x" aria-label="Chiudi">${icon('x')}</button></div>`
+    + (!me.name ? '<button class="btn small" id="setName">Scegli il nome per farti vedere</button>'
+      : list.length ? `<div class="list">${list.map(o => {
+        const path = GAMES[o.game]?.path, join = o.code && path && (o.status === 'lobby' || o.status === 'playing');
+        return `<div class="row">${avatarHTML(o)}<div class="t"><b>${esc(o.name)}</b><small>${esc(describe(o))}</small></div>
+          ${join ? `<a class="act go" href="${root}${path}?r=${o.code}">${o.status === 'lobby' ? 'Entra' : 'Guarda'}</a>` : ''}
+          <button class="act" data-wave="${o.id}" aria-label="Saluta ${esc(o.name)}">${icon('wave')}</button></div>`;
+      }).join('')}</div>` : '<p class="empty">Per ora ci sei solo tu: crea una stanza e invita qualcuno</p>');
+  $('.x', pop).onclick = () => pop.remove();
+  const sn = $('#setName', pop); if (sn) sn.onclick = () => editProfile().then(() => { announce(); drawOnlinePanel(); });
+  $$('[data-wave]', pop).forEach(b => b.onclick = () => { ping(b.dataset.wave, 'wave'); b.innerHTML = icon('check'); b.disabled = true; sfx('pop'); });
 }
 
 /* ---------- chi è online (canale comune a tutte le pagine) ---------- */
@@ -234,6 +280,12 @@ export function announce(info = {}) {
   const p = getProfile();
   if (!p.name) return;
   if (!hub) {
+    hub = 'loading';
+    getSb().then(sb => openHub(sb, p)).catch(() => { hub = null; });
+  } else if (hub !== 'loading') track();
+}
+function openHub(sb, p) {
+  {
     hub = sb.channel('gu:hub', { config: { presence: { key: p.id }, broadcast: { self: false } } });
     hub.on('presence', { event: 'sync' }, () => {
       online = Object.values(hub.presenceState()).map(a => a.sort((x, y) => y.at - x.at)[0]);
@@ -242,9 +294,9 @@ export function announce(info = {}) {
     hub.on('broadcast', { event: 'ping' }, ({ payload }) => { if (payload.to === getProfile().id) showPing(payload); });
     hub.subscribe(st => { if (st === 'SUBSCRIBED') track(); });
     window.addEventListener('profile', () => track());
-  } else track();
+  }
 }
-function track() { const p = getProfile(); if (hub && p.name) hub.track({ id: p.id, name: p.name, avatar: p.avatar, color: p.color, ...hubInfo, at: Date.now() }).catch(() => {}); }
+function track() { const p = getProfile(); if (hub && hub !== 'loading' && p.name) hub.track({ id: p.id, name: p.name, avatar: p.avatar, color: p.color, ...hubInfo, at: Date.now() }).catch(() => {}); }
 export const onlineList = () => online;
 export const describe = o => {
   const g = GAMES[o.game]?.name;
@@ -257,7 +309,7 @@ export const describe = o => {
 // invito o saluto a un collega: arriva come avviso in qualunque pagina stia guardando
 export function ping(to, kind, extra = {}) {
   const p = getProfile();
-  hub?.send({ type: 'broadcast', event: 'ping', payload: { to, kind, from: { id: p.id, name: p.name, avatar: p.avatar, color: p.color }, ...extra } });
+  if (hub && hub !== 'loading') hub.send({ type: 'broadcast', event: 'ping', payload: { to, kind, from: { id: p.id, name: p.name, avatar: p.avatar, color: p.color }, ...extra } });
 }
 function showPing(d) {
   const box = document.createElement('div');
@@ -269,4 +321,19 @@ function showPing(d) {
   const close = () => { box.classList.add('out'); setTimeout(() => box.remove(), 300); };
   box.querySelector('.x').onclick = () => { if (!url && d.kind === 'wave') ping(d.from.id, 'wave-back'); close(); };
   setTimeout(close, url ? 30000 : 8000);
+}
+
+/* ---------- sfondo a tema per le schermate iniziali: oggetti del gioco che fluttuano ---------- */
+export function floatBackdrop(items, n = 14) {
+  const bd = document.createElement('div'); bd.className = 'backdrop'; bd.setAttribute('aria-hidden', 'true');
+  const narrow = innerWidth < 640;
+  for (let i = 0; i < (narrow ? Math.ceil(n * .6) : n); i++) {
+    const el = document.createElement('div'); el.className = 'fl';
+    const size = (narrow ? 54 : 70) + Math.random() * (narrow ? 40 : 70);
+    el.style.cssText = `left:${Math.random() * 100}%;top:${Math.random() * 100}%;width:${size}px;--r:${(Math.random() - .5) * 60}deg;--d:${14 + Math.random() * 16}s;--dl:${-Math.random() * 20}s;--x:${(Math.random() - .5) * 120}px;--y:${(Math.random() - .5) * 120}px;opacity:${.35 + Math.random() * .45}`;
+    el.innerHTML = items[i % items.length];
+    bd.appendChild(el);
+  }
+  document.body.prepend(bd);
+  return bd;
 }

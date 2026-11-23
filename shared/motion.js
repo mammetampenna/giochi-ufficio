@@ -1,5 +1,5 @@
 // Animazioni coreografate con Anime.js. Una sola curva per tutto; con "riduci movimento" le durate vanno a zero.
-import { animate, stagger, createTimeline, cubicBezier, utils } from 'https://cdn.jsdelivr.net/npm/animejs@4.3.6/+esm';
+import { animate, stagger, createTimeline, cubicBezier, utils } from '../vendor/anime.esm.min.js';
 
 export const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const EASE = cubicBezier(.22, 1, .36, 1);

@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0d0b1a">
 <title>Scarta!</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="../shared/ui.css">
 <style>
   :root { --cw: clamp(70px, 7.4vw, 104px); --ch: calc(var(--cw) * 1.5); --tint: #7b6cff; }
@@ -104,9 +106,19 @@
     .opp .avatar { width: 28px; height: 28px; font-size: 15px; }
     .opp .nm { max-width: 70px; font-size: 12px; }
     .mini { display: none; }
-    #center { top: 44%; }
-    #hand { justify-content: flex-start; padding-top: 22px; }
-    #hand .sc-card { margin-left: var(--ovm, -30px); }
+    #center { top: 40%; }
+    /* da telefono la mano è una griglia da 7 per riga, senza sovrapposizioni: si legge ogni carta */
+    #hand { --hw: calc((100vw - 24px - 6 * 6px) / 7); flex-wrap: wrap; justify-content: center; gap: 8px 6px; width: 100%; padding: 12px 0 4px;
+      max-height: calc(var(--hw) * 1.5 * 2 + 30px); overflow-x: hidden; overflow-y: auto; }
+    #hand .sc-card { width: var(--hw); height: calc(var(--hw) * 1.5); margin-left: 0 !important; }
+    #hand.my .sc-card.ok { transform: translateY(-6px); }
+    #hand.my .sc-card.ok svg { filter: drop-shadow(0 0 6px rgba(255,210,90,.95)) drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+    #hand.my .sc-card.ok:hover { transform: translateY(-8px); }
+    #hand.my .sc-card.no { filter: brightness(.6) saturate(.7); }
+    #me { gap: 6px; }
+    .bar .who { padding: 4px 12px 4px 4px; font-size: 14px; }
+    .bar .btn.small { min-height: 34px; }
+    #pending { top: auto; bottom: calc(100% + 10px); }
     .timer { width: 60px; }
   }
 </style>

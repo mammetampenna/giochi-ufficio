@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0d0b1a">
 <title>Giochi d'Ufficio</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="shared/ui.css">
 <style>
   main { width: min(1120px, 100%); margin: 0 auto; padding: 88px var(--gutter) 60px; }
@@ -15,10 +17,10 @@
   .hero h1 .l { display: inline-block; animation: lrise .9s var(--ease) backwards; }
   .hero h1 .grad { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   @keyframes lrise { from { transform: translateY(110%) rotate(8deg); } }
-  .hero p { margin: 14px 0 0; color: var(--dim); font-size: 18px; animation: fadeUp .8s .5s var(--ease) backwards; max-width: 34rem; }
+  .hero p { margin: 14px 0 0; color: var(--dim); font-size: 18px; animation: fadeUp .8s .95s var(--ease) backwards; max-width: 34rem; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } }
 
-  .joinbox { margin-left: auto; padding: 16px 18px; animation: fadeUp .8s .65s var(--ease) backwards; }
+  .joinbox { margin-left: auto; padding: 16px 18px; animation: fadeUp .8s 1.05s var(--ease) backwards; }
   .joinbox small { display: block; color: var(--dim); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
   .boxes { display: flex; gap: 6px; }
   .boxes input {
@@ -30,11 +32,18 @@
   .boxes.bad { animation: shake .35s; } .boxes.good input { border-color: var(--ok); }
   @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 
-  .online { padding: 14px 16px; margin: 0 0 22px; animation: fadeUp .8s .8s var(--ease) backwards; }
-  .online .hd { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 700; }
-  .online .hd small { color: var(--dim); font-weight: 500; }
-  .online .empty { color: var(--dim); font-size: 14px; }
 
+  /* apertura: tre carte che saltano e il nome che entra, mentre il resto si carica */
+  #splash { position: fixed; inset: 0; z-index: 200; display: grid; place-content: center; justify-items: center; gap: 22px; background: var(--bg); transition: opacity .45s var(--ease), visibility .45s; }
+  #splash.out { opacity: 0; visibility: hidden; }
+  #splash .cards { display: flex; gap: 10px; height: 96px; align-items: end; }
+  #splash .cards i { width: 54px; height: 80px; border-radius: 10px; border: 3px solid #fff; box-shadow: 0 10px 24px rgba(0,0,0,.4); animation: hop .9s var(--spring) infinite alternate; }
+  #splash .cards i:nth-child(1) { background: var(--acc); transform: rotate(-12deg); }
+  #splash .cards i:nth-child(2) { background: var(--acc2); animation-delay: .15s; }
+  #splash .cards i:nth-child(3) { background: var(--acc3); transform: rotate(12deg); animation-delay: .3s; }
+  @keyframes hop { from { translate: 0 0; } to { translate: 0 -22px; } }
+  #splash b { font-size: clamp(28px, 8vw, 44px); font-weight: 800; letter-spacing: -.03em; animation: popIn .6s .1s var(--spring) backwards; }
+  #splash b span { background: linear-gradient(100deg, var(--acc), var(--acc2) 45%, var(--acc3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; perspective: 1200px; }
   .card {
     --mx: 50%; --my: 50%; --rx: 0deg; --ry: 0deg; --c1: var(--acc); --c2: var(--acc2);
@@ -93,10 +102,13 @@
     .joinbox { margin-left: 0; width: 100%; }
     .boxes input { flex: 1; width: auto; min-width: 0; }
     .hero p { font-size: 16px; }
+    .fan { transform: scale(.8); margin-top: -40px; }
+    .hands .hw { width: 80px; height: 112px; }
   }
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="cards"><i></i><i></i><i></i></div><b>Giochi <span>d'Ufficio</span></b></div>
 <div class="aurora"><i></i><i></i><i></i></div>
 
 <main>
@@ -111,10 +123,6 @@
     </div>
   </section>
 
-  <section class="online glass" id="online">
-    <div class="hd"><span class="dot"></span>Online ora <small id="onCount"></small></div>
-    <div class="people" id="people"></div>
-  </section>
 
   <section class="grid" id="grid">
     <a class="card wide" href="morra/" data-game="morra" style="--c1:#ff5b7f;--c2:#ffb23f">
@@ -167,12 +175,15 @@ import { HAND, handStyles, setFingers } from './shared/mano.js';
 import { ITALIA, ITALIA_VB } from './shared/italia.js';
 
 mountTopbar({ back: false });
+const t0 = performance.timeOrigin ? performance.now() : 0;
+setTimeout(() => $('#splash').classList.add('out'), Math.max(0, 700 - t0));
+setTimeout(() => $('#splash')?.remove(), Math.max(0, 700 - t0) + 600);
 $$('[data-ico]').forEach(e => e.innerHTML = icon(e.dataset.ico));
 
 // titolo con lettere che salgono una alla volta
 const words = [['Giochi', ''], ["d'Ufficio", 'grad']];
 let i = 0;
-$('#title').innerHTML = words.map(([w, cls]) => `<span class="w ${cls}">${[...w].map(ch => `<span class="l" style="animation-delay:${(i++) * 35}ms">${ch}</span>`).join('')}</span>`).join(' ');
+$('#title').innerHTML = words.map(([w, cls]) => `<span class="w ${cls}">${[...w].map(ch => `<span class="l" style="animation-delay:${650 + (i++) * 35}ms">${ch}</span>`).join('')}</span>`).join(' ');
 
 /* ---------- oggetti nelle schede ---------- */
 handStyles(); injectDefs();
@@ -210,7 +221,7 @@ const rest = {
 
 // schede: inclinazione 3D col mouse, oggetto animato al passaggio
 $$('.card').forEach((c, k) => {
-  c.style.animationDelay = (350 + k * 90) + 'ms';
+  c.style.animationDelay = (Math.max(350, 750 - t0) + k * 90) + 'ms';
   const g = c.dataset.game;
   c.addEventListener('pointermove', e => {
     if (e.pointerType !== 'mouse') return;
@@ -228,26 +239,9 @@ if (matchMedia('(hover: none)').matches && !reduce) {
   $$('.card').forEach(c => io.observe(c));
 }
 
-/* ---------- colleghi online ---------- */
+/* ---------- colleghi online: l'elenco è nell'icona in alto a destra ---------- */
 announce({ game: 'menu', code: null, status: 'menu' });
-function drawOnline() {
-  const me = getProfile(), list = onlineList().filter(o => o.id !== me.id);
-  $('#onCount').textContent = list.length ? `${list.length} collegh${list.length === 1 ? 'a' : 'i'}` : '';
-  if (!me.name) {
-    $('#people').innerHTML = '<button class="btn small" id="setName">Scegli il tuo nome per farti vedere dai colleghi</button>';
-    $('#setName').onclick = () => editProfile().then(() => { announce(); drawOnline(); });
-    return;
-  }
-  $('#people').innerHTML = list.length ? list.map(o => {
-    const path = GAMES[o.game]?.path, join = o.code && path && (o.status === 'lobby' || o.status === 'playing');
-    return `<div class="person">${avatarHTML(o)}<div class="t"><b>${esc(o.name)}</b><small>${esc(describe(o))}</small></div>
-      ${join ? `<a class="act go" href="${path}?r=${o.code}">${o.status === 'lobby' ? 'Entra' : 'Guarda'}</a>` : ''}<button class="act" data-wave="${o.id}" title="Saluta" aria-label="Saluta ${esc(o.name)}">${icon('wave')}</button></div>`;
-  }).join('') : '<span class="empty">Per ora ci sei solo tu: crea una stanza e invita qualcuno</span>';
-  $$('[data-wave]').forEach(b => b.onclick = () => { ping(b.dataset.wave, 'wave'); b.innerHTML = icon('check'); b.disabled = true; sfx('pop'); anim(b, { scale: [1.4, 1], rotate: [-20, 0], duration: 500, ease: SPRING }); });
-}
-window.addEventListener('online', drawOnline);
-window.addEventListener('profile', () => { announce(); drawOnline(); });
-drawOnline();
+window.addEventListener('profile', () => announce());
 
 /* ---------- codice stanza ---------- */
 const boxes = $$('#boxes input');

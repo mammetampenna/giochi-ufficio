@@ -1,11 +1,12 @@
 // Scarta! online, da 2 a 10 giocatori. L'host tiene mazzo e mani e decide; gli altri inviano solo le loro mosse.
-import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep } from '../shared/core.js';
+import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep, floatBackdrop } from '../shared/core.js';
 import { mountLobby } from '../shared/lobby.js';
 import { anim, timeline, stagger } from '../shared/motion.js';
 import { newDeck, shuffle, canPlay, botMove, bestColor, col, val, isWild, COLORS, COLOR_NAME } from './regole.js';
 import { cardSVG, backSVG, HEX } from './carte.js';
 
 mountTopbar();
+floatBackdrop(['r7.0', 'y2.0', 'gskip.0', 'brev.0', 'rd2.0', 'wwild.0', 'wd4.0', 'g9.0'].map(c => cardSVG(c)).concat([backSVG()]), 14);
 const BOTS = [['Compare Turi', '🤖', '#3fd6c6'], ['Comare Nina', '👵', '#ffb23f'], ['Zio Peppe', '🧔', '#7b6cff'], ['Nonna Rosa', '🌹', '#ff5b7f'], ['Cugino Tano', '🦊', '#3fdc8a'],
   ['Don Ciccio', '🎩', '#ff7a45'], ['Mastro Ninì', '🔨', '#4fb3ff'], ['Zia Concetta', '🍋', '#e86cff'], ['Peppino', '🐸', '#ffc22e']];
 let room = null, me = getProfile(), H = null;
