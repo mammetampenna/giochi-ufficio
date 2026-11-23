@@ -5,7 +5,7 @@ import { sfx, sleep, esc } from '../shared/core.js';
 const ROT = { 1: [0, 0], 2: [90, 0], 3: [0, -90], 4: [0, 90], 5: [-90, 0], 6: [0, 180] }; // rotateX, rotateY per mostrare la faccia
 const PIPS = { 1: [5], 2: [1, 9], 3: [1, 5, 9], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
 const FACES = [['f1', 1], ['f6', 6], ['f3', 3], ['f4', 4], ['f5', 5], ['f2', 2]];
-const vibrate = p => { try { if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(p); } catch (e) {} };
+const vibrate = p => { try { if (navigator.userActivation?.hasBeenActive && matchMedia("(pointer: coarse)").matches) navigator.vibrate?.(p); } catch (e) {} };
 
 function dieHTML(color) {
   return `<div class="die" style="--dc:${color}"><div class="cube">${FACES.map(([cls, v]) => `<div class="face ${cls}">${Array.from({ length: 9 }, (_, i) => `<i${PIPS[v].includes(i + 1) ? ' class="on"' : ''}></i>`).join('')}</div>`).join('')}</div></div>`;
@@ -84,33 +84,43 @@ export function battle(o) {
       const dA = mk(res.att, 'att'), dD = mk(res.def, 'def'), all = [...dA, ...dD];
       el.querySelector('.def-cup').classList.add('tip'); el.querySelector('.att-cup').classList.add('tip');
       setTimeout(() => el.querySelectorAll('.cup').forEach(c => c.classList.remove('tip')), 500);
-      // fisica semplice: rimbalzi sui bordi e tra i dadi, attrito, rotazione che rallenta
-      const dur = (decisive && !blitz ? 1500 : 1000) * fast; let t0 = performance.now(), last = t0;
-      await new Promise(r => {
-        (function step(now) {
-          const dt = Math.min(6, (now - last) / 16.7); last = now; // a tempo, non a fotogrammi
-          for (const b of all) {
-            b.x += b.vx * dt; b.y += b.vy * dt; b.vx *= Math.pow(.965, dt); b.vy *= Math.pow(.965, dt);
-            if (b.x < S / 2 || b.x > W - S / 2) { b.vx *= -.75; b.x = Math.max(S / 2, Math.min(W - S / 2, b.x)); sfx('card'); }
-            if (b.y < S / 2 || b.y > H - S / 2) { b.vy *= -.75; b.y = Math.max(S / 2, Math.min(H - S / 2, b.y)); }
-            b.rx += b.wx * dt * Math.hypot(b.vx, b.vy) / 8; b.ry += b.wy * dt * Math.hypot(b.vx, b.vy) / 8;
-            b.el.style.transform = `translate(${b.x - S / 2}px, ${b.y - S / 2}px)`;
-            b.cube.style.transform = `rotateX(${b.rx}deg) rotateY(${b.ry}deg)`;
-          }
-          for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
-            const a = all[i], c = all[j], dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy);
-            if (d > 0 && d < S) { const nx = dx / d, ny = dy / d, push = (S - d) / 2; a.x -= nx * push; a.y -= ny * push; c.x += nx * push; c.y += ny * push;
-              const tvx = a.vx; a.vx = c.vx * .8; c.vx = tvx * .8; const tvy = a.vy; a.vy = c.vy * .8; c.vy = tvy * .8; }
-          }
-          if (now - t0 < dur) requestAnimationFrame(step); else r();
-        })(t0);
-        setTimeout(r, dur + 400); // se la scheda è in background
+      // la traiettoria si calcola tutta prima (60 passi al secondo) e poi la esegue il browser da solo:
+      // così il movimento è fluido anche se la pagina è impegnata
+      const dur = (decisive && !blitz ? 1500 : 1000) * fast, steps = Math.round(dur / 1000 * 60), STEP = 2;
+      const track = all.map(() => []), hits = [];
+      for (let f = 0; f <= steps; f++) {
+        for (const [k, b] of all.entries()) {
+          b.x += b.vx; b.y += b.vy; b.vx *= .965; b.vy *= .965;
+          if (b.x < S / 2 || b.x > W - S / 2) { b.vx *= -.75; b.x = Math.max(S / 2, Math.min(W - S / 2, b.x)); hits.push(f); }
+          if (b.y < S / 2 || b.y > H - S / 2) { b.vy *= -.75; b.y = Math.max(S / 2, Math.min(H - S / 2, b.y)); hits.push(f); }
+          const sp = Math.hypot(b.vx, b.vy) / 8; b.rx += b.wx * sp; b.ry += b.wy * sp;
+          if (f % STEP === 0 || f === steps) track[k].push([b.x - S / 2, b.y - S / 2, b.rx, b.ry]);
+        }
+        for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+          const a = all[i], c = all[j], dx = c.x - a.x, dy = c.y - a.y, d = Math.hypot(dx, dy);
+          if (d > 0 && d < S) { const nx = dx / d, ny = dy / d, push = (S - d) / 2; a.x -= nx * push; a.y -= ny * push; c.x += nx * push; c.y += ny * push;
+            const tvx = a.vx; a.vx = c.vx * .8; c.vx = tvx * .8; const tvy = a.vy; a.vy = c.vy * .8; c.vy = tvy * .8; hits.push(f); }
+        }
+      }
+      // rumore dei dadi che sbattono, al momento giusto (al massimo 6 colpi)
+      [...new Set(hits.map(f => Math.round(f / 6) * 6))].slice(0, 6).forEach(f => setTimeout(() => sfx('card'), f / 60 * 1000));
+      const anims = all.map((b, k) => {
+        const t = track[k];
+        b.el.style.transform = `translate(${t[0][0]}px, ${t[0][1]}px)`;
+        const a1 = b.el.animate(t.map(([x, y]) => ({ transform: `translate(${x}px, ${y}px)` })), { duration: dur, easing: 'linear', fill: 'forwards' });
+        const a2 = b.cube.animate(t.map(([, , rx, ry]) => ({ transform: `rotateX(${rx}deg) rotateY(${ry}deg)` })), { duration: dur, easing: 'linear', fill: 'forwards' });
+        return [a1, a2];
       });
-      // atterraggio sulla faccia giusta, con qualche giro in più
-      for (const b of all) {
-        const [x, y] = ROT[b.v];
-        b.cube.style.transition = `transform ${(decisive && !blitz && b === all[all.length - 1] ? 900 : 450) * fast}ms cubic-bezier(.2,1.4,.4,1)`;
-        b.cube.style.transform = `rotateX(${x + 360 * Math.round(b.rx / 360)}deg) rotateY(${y + 360 * Math.round(b.ry / 360)}deg)`;
+      await Promise.race([Promise.all(anims.flat().map(a => a.finished.catch(() => {}))), sleep(dur + 300)]);
+      // atterraggio sulla faccia giusta, con qualche giro in più (anche questo eseguito dal browser)
+      for (const [k, b] of all.entries()) {
+        const t = track[k].at(-1), [x, y] = ROT[b.v];
+        const fx = x + 360 * Math.round(t[2] / 360), fy = y + 360 * Math.round(t[3] / 360);
+        b.el.style.transform = `translate(${t[0]}px, ${t[1]}px)`; anims[k][0].cancel();
+        const land = (decisive && !blitz && b === all[all.length - 1] ? 900 : 450) * fast;
+        b.cube.style.transform = `rotateX(${fx}deg) rotateY(${fy}deg)`; anims[k][1].cancel();
+        b.cube.animate([{ transform: `rotateX(${t[2]}deg) rotateY(${t[3]}deg)` }, { transform: `rotateX(${fx}deg) rotateY(${fy}deg)` }], { duration: land, easing: 'cubic-bezier(.2,1.4,.4,1)' });
+        b.x = t[0] + S / 2; b.y = t[1] + S / 2;
       }
       sfx('thump'); vib(25);
       await sleep((decisive && !blitz ? 1000 : 520) * fast);

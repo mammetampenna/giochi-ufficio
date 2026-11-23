@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Anteprima mappe</title>
+<style>body{background:#0d0b1a;color:#fff;font:12px sans-serif;margin:0}svg{display:block;width:100%;height:auto;border-bottom:1px solid #333}path{stroke:#fff;stroke-width:.8}text{font-size:9px;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#000;stroke-width:2}line{stroke:#ff0;stroke-width:.6;opacity:.6}</style>
+<body>
+<script type="module">
+import { GEO } from '../geo.js';
+const hue = {}; let h = 0;
+for (const [id, m] of Object.entries(GEO)) {
+  const byId = Object.fromEntries(m.terr.map(t => [t.id, t]));
+  Object.keys(m.regions).forEach(r => hue[id + r] = (h += 57) % 360);
+  const lines = m.terr.flatMap(t => t.adj.filter(a => a > t.id).map(a => `<line x1="${t.c[0]}" y1="${t.c[1]}" x2="${byId[a].c[0]}" y2="${byId[a].c[1]}"/>`)).join('');
+  document.body.insertAdjacentHTML('beforeend', `<h2>${m.name}</h2><svg viewBox="0 0 ${m.w} ${m.h}">${m.terr.map(t => `<path d="${t.d}" style="fill:hsl(${hue[id + t.region]} 60% ${35 + (t.id.length % 4) * 8}%);stroke:hsl(${hue[id + t.region]} 60% ${35 + (t.id.length % 4) * 8}%);stroke-width:1.2"><title>${t.name}</title></path><path d="${t.b}" fill="none"/>`).join('')}${lines}${m.terr.map(t => `<text x="${t.c[0]}" y="${t.c[1]}">${t.name}</text>`).join('')}</svg>`);
+}
+</script>

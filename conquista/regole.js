@@ -202,7 +202,9 @@ export function botMove(st) {
       for (const a of enemyAdj(t)) {
         const target = T.find(x => x.id === a);
         const ratio = (st.armies[t.id] - 1) / st.armies[a];
-        if (ratio < 1.3) continue;
+        // più passano i giri, più il computer osa: così le partite non si arenano
+        const dare = st.round > 30 ? .75 : st.round > 15 ? .95 : 1.25;
+        if (ratio < (st.armies[t.id] >= 8 ? Math.min(1, dare) : dare)) continue;
         const s = ratio * 2 + (target.region === t.region ? regionGain(t) * 3 : 0) + (st.armies[a] === 1 ? 2 : 0);
         if (!best || s > best.s) best = { s, from: t.id, to: a };
       }
@@ -210,9 +212,13 @@ export function botMove(st) {
     return best ? { t: 'attack', from: best.from, to: best.to, dice: 3 } : { t: 'endAttack' };
   }
   if (st.phase === 'fortify') {
-    const inner = mine.filter(t => !enemyAdj(t).length && st.armies[t.id] > 1).sort((a, b) => st.armies[b.id] - st.armies[a.id]);
+    // distanza dal fronte di ogni mio territorio: le armate nelle retrovie avanzano di un passo verso il fronte
+    const dist = {}, q = mine.filter(t => enemyAdj(t).length);
+    q.forEach(t => dist[t.id] = 0);
+    for (let i = 0; i < q.length; i++) for (const a of q[i].adj) if (st.owner[a] === p && dist[a] == null) { dist[a] = dist[q[i].id] + 1; q.push(T.find(x => x.id === a)); }
+    const inner = mine.filter(t => dist[t.id] > 0 && st.armies[t.id] > 1).sort((a, b) => st.armies[b.id] - st.armies[a.id]);
     for (const f of inner) {
-      const dest = f.adj.map(a => T.find(x => x.id === a)).filter(x => st.owner[x.id] === p).sort((a, b) => threat(b) - threat(a))[0];
+      const dest = f.adj.map(a => T.find(x => x.id === a)).filter(x => st.owner[x.id] === p && dist[x.id] < dist[f.id]).sort((a, b) => dist[a.id] - dist[b.id] || threat(b) - threat(a))[0];
       if (dest) return { t: 'fortify', from: f.id, to: dest.id, n: st.armies[f.id] - 1 };
     }
     return { t: 'endTurn' };

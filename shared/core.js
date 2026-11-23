@@ -193,8 +193,9 @@ export function sfx(kind) {
   try {
     ac ||= new AudioContext();
     if (kind === 'card') { // fruscio di carta: rumore filtrato brevissimo
-      const t = ac.currentTime, len = ac.sampleRate * .09, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2;
+      const t = ac.currentTime;
+      if (!sfx.noise) { const len = ac.sampleRate * .09; sfx.noise = ac.createBuffer(1, len, ac.sampleRate); const d = sfx.noise.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 2; }
+      const buf = sfx.noise;
       const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
       src.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2600 + Math.random() * 800; f.Q.value = .8; g.gain.value = .35;
       src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); return;

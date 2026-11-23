@@ -112,20 +112,24 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
 - **Test**: `window.__scarta`. La simulazione di 500 partite in Node con le stesse regole non perde carte.
 
 ## Conquista! (`conquista/`), gioco alla Risiko con nome e mappe originali
-- **Mappe** (`mappe.js`): Mondo (38 territori, 6 continenti), Europa (28) e Italia (25), disegnate a esagoni.
-  - Ogni territorio è fatto di rettangoli di celle "odd-r"; il generatore smussa gli angoli a caso.
-  - Le adiacenze si calcolano dalle celle che si toccano, più i collegamenti via mare in `links`.
-  - Lo script di controllo verifica che le mappe siano collegate e che nessun territorio sia spezzato.
+- **Mappe con i confini veri** (`geo.js`, generato da `tools/build_geo.mjs`; `mappe.js` lo legge). Le mappe a esagoni sono state scartate dall'utente il 23/11/2026: voleva confini reali.
+  - Mondo (42 territori, 6 continenti) ed Europa (32) vengono dai confini di Natural Earth (world-atlas 2.0.2, `countries-50m.json`, pubblico dominio). Il file va in `tools/dati/` ed è escluso da git: si riscarica da `cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json`.
+  - Italia (30 territori) raggruppa le province di ItaliaGuessr (`italia-guessr/src/catalog.js`).
+  - Ogni territorio è un gruppo di stati o province; i paesi grandi (USA, Canada, Russia, Cina, Brasile, Australia…) si tagliano lungo meridiani o paralleli. Il taglio ricuce i pezzi lungo la linea, così non restano linee spurie.
+  - Per ogni territorio: `d` (forma da riempire), `b` (solo i bordi esterni, senza i confini interni), `c` (posto del distintivo; sul Mondo alcuni distintivi europei sono messi a mano in `labels`), `adj`.
+  - Le adiacenze si calcolano dai confini che si toccano, più i collegamenti via mare in `links`.
+  - `tools/anteprima.html` mostra le tre mappe con nomi e adiacenze.
+  - Nel gioco: la conquista si allarga a cerchio dal territorio che attacca (clipPath); sul Mondo i nomi compaiono solo avvicinando la mappa; sul telefono l'inquadratura parte dal baricentro dei territori.
 - **Regole** (`regole.js`, stato JSON):
   - Rinforzi: max(3, territori/3) più i bonus delle regioni.
   - Carte carro/aereo/nave/jolly. Tris: 4, 6, 8, 10 oppure 12 con il jolly, +2 se possiedi il territorio della carta. Con 5 carte la combinazione è obbligatoria.
   - Attacco fino a 3 dadi contro 3 (alla Risiko): in caso di pareggio vince la difesa.
   - Dopo una conquista si spostano almeno tante armate quanti dadi lanciati; uno spostamento tra territori vicini chiude il turno.
   - Obiettivi segreti: N territori, N territori con 2 armate, due regioni, eliminare un giocatore. In alternativa, la conquista totale.
-  - L'IA è in `botMove`. Una simulazione di 720 partite (3 mappe, da 2 a 6 giocatori) finisce sempre, in 7-26 giri.
+  - L'IA è in `botMove`: sposta le armate delle retrovie verso il fronte e osa di più col passare dei giri (dopo 15 e dopo 30), sennò con i confini veri le partite tra molti computer si arenano. Una simulazione di 450 partite sulle mappe vere finisce sempre; mediana tra 11 giri (2 giocatori) e circa 50 (6 giocatori, conquista totale).
 - **Dadi** (`dadi.js`), il cuore del gioco:
   - Si tiene premuto il bicchiere (o la barra spaziatrice) per scuoterlo e si rilascia per lanciare: più a lungo scuoti, più forte lanci.
-  - Dadi 3D in CSS con una fisica semplice (rimbalzi e urti), che atterrano sempre sui valori decisi dalle regole.
+  - Dadi 3D in CSS con una fisica semplice (rimbalzi e urti), che atterrano sempre sui valori decisi dalle regole. La traiettoria si calcola tutta prima e la esegue il browser con WAAPI: così è fluida anche se la pagina è impegnata.
   - Poi si mettono in fila e si scontrano a coppie: esplosioni, carrarmatini che volano via, "Sfondato!", "Difeso!", "Conquistato!", "Tris!", "Doppio sei!". Quando può arrivare la conquista, c'è il rallentatore.
   - Il pulsante "Fino in fondo" lancia a raffica. Le battaglie degli altri si vedono in versione veloce.
 - **Interfaccia** (`conquista.js`):

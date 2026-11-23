@@ -1,7 +1,7 @@
 // Conquista!: partita locale contro il computer o online dal vivo (l'host tiene la partita e muove i computer).
 import { $, $$, esc, toast, avatarHTML, getProfile, mountTopbar, saveRoom, saveResult, findRoom, sfx, confetti, sleep, floatBackdrop } from '../shared/core.js';
 import { mountLobby } from '../shared/lobby.js';
-import { SQ3, neighbors, MAP_LIST } from './mappe.js';
+import { MAP_LIST } from './mappe.js';
 import { newGame, apply, botMove, getMap, missionText, bestTrade, tradeValue, canAttackFrom, adj, COLORS, CARD } from './regole.js';
 import { battle } from './dadi.js';
 
@@ -72,7 +72,7 @@ function hostStart(settings, players, seed) {
 }
 let saveT;
 function push(ev) {
-  room.both('st', { st: H, ev });
+  room.both('st', { st: structuredClone(H), ev }); // copia: la vista confronta lo stato prima e dopo, e il motore modifica H sul posto
   if (!room.solo) { clearTimeout(saveT); saveT = setTimeout(() => saveRoom(room.code, { state: H }), 1500); }
   scheduleBot();
 }
@@ -118,7 +118,7 @@ async function handle({ st, ev }) {
   if (ev.t === 'trade') { bigText(`+${ev.v} armate`); sfx('win'); }
   if (ev.t === 'endTurn' || ev.t === 'fortify') {
     if (ev.card && ev.p === myIdx(st)) toast(`Hai pescato una carta: ${CARD[ev.card.k]}`);
-    if (isMyTurn(st)) { bigText('Tocca a te!'); sfx('win'); try { navigator.vibrate?.([40, 60, 40]); } catch (e) {} }
+    if (isMyTurn(st)) { bigText('Tocca a te!'); sfx('win'); try { if (navigator.userActivation?.hasBeenActive && matchMedia("(pointer: coarse)").matches) navigator.vibrate?.([40, 60, 40]); } catch (e) {} }
   }
   if (ev.win != null || (st.winner != null && prev.winner == null)) showEnd(st);
   // dopo una conquista mia: quante armate sposto
@@ -126,40 +126,25 @@ async function handle({ st, ev }) {
 }
 
 /* ---------- mappa ---------- */
-const R = 12;
-const cellXY = (c, r) => [R * SQ3 * (c + .5 * (r & 1)) + R, R * 1.5 * r + R];
-const corner = (x, y, i) => { const a = (-90 + 60 * i) * Math.PI / 180; return [x + R * Math.cos(a), y + R * Math.sin(a)]; };
 let M = null, centers = {};
+// sfumatura fissa per territorio, così due territori vicini dello stesso giocatore si distinguono
+const tint = id => ([...id].reduce((h, c) => h * 31 + c.charCodeAt(0) >>> 0, 7) % 9) / 70 - .06;
 function buildMap(st) {
   M = getMap(st.map);
-  const svg = $('#map'), W = M.cols * R * SQ3 + R * 2, Hh = M.rows * R * 1.5 + R * 2;
-  let cells = '', borders = '', coast = '', links = '', badges = '';
+  const svg = $('#map'), W = M.w, Hh = M.h, all = M.terr.map(t => t.d).join('');
+  let lands = '', edges = '', links = '', badges = '';
   for (const t of M.terr) {
-    let sx = 0, sy = 0;
-    const polys = t.cells.map(([c, r]) => {
-      const [x, y] = cellXY(c, r); sx += x; sy += y;
-      // lati: bordo tra territori diversi o costa verso il mare
-      neighbors(c, r); const nb = neighbors(c, r), ORDER = [5, 0, 1, 2, 3, 4];
-      for (let s = 0; s < 6; s++) {
-        const [nc, nr] = nb[ORDER[s]], o = M.grid[nc + ',' + nr];
-        if (o === t.id) continue;
-        const [x1, y1] = corner(x, y, s), [x2, y2] = corner(x, y, s + 1), seg = `M${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}`;
-        if (!o) coast += seg; else if (o > t.id) borders += seg;
-      }
-      return `<polygon class="cell" points="${Array.from({ length: 6 }, (_, i) => corner(x, y, i).map(v => v.toFixed(1)).join(',')).join(' ')}"/>`;
-    }).join('');
-    const cx = sx / t.cells.length, cy = sy / t.cells.length;
-    // il distintivo va sulla cella più vicina al centro
-    const best = t.cells.map(([c, r]) => cellXY(c, r)).sort((a, b) => Math.hypot(a[0] - cx, a[1] - cy) - Math.hypot(b[0] - cx, b[1] - cy))[0];
-    centers[t.id] = best;
-    cells += `<g class="terr" data-t="${t.id}">${polys}</g>`;
-    badges += `<g class="badge" data-b="${t.id}" transform="translate(${best[0].toFixed(1)} ${best[1].toFixed(1)})"><g class="bi"><circle r="9"/><text>0</text></g></g><text class="tname" x="${best[0].toFixed(1)}" y="${(best[1] + 17).toFixed(1)}">${esc(t.name)}</text>`;
+    centers[t.id] = t.c;
+    lands += `<g class="terr" data-t="${t.id}"><path class="land" d="${t.d}"/></g>`;
+    edges += t.b;
+    badges += `<g class="badge" data-b="${t.id}" transform="translate(${t.c[0]} ${t.c[1]})"><g class="bi"><circle r="9"/><text>0</text></g></g><text class="tname" x="${t.c[0]}" y="${t.c[1] + 17}">${esc(t.name)}</text>`;
   }
-  M.links.forEach(([a, b]) => { const [x1, y1] = centers[a], [x2, y2] = centers[b]; links += `<path class="link" d="M${x1} ${y1}Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - 20} ${x2} ${y2}"/>`; });
+  M.links.forEach(([a, b]) => { const [x1, y1] = centers[a], [x2, y2] = centers[b]; links += `<path class="link" d="M${x1} ${y1}Q${(x1 + x2) / 2} ${(y1 + y2) / 2 - Math.hypot(x2 - x1, y2 - y1) * .15} ${x2} ${y2}"/>`; });
   svg.innerHTML = `<rect class="sea" x="-2000" y="-2000" width="${W + 4000}" height="${Hh + 4000}"/>
-    <defs><pattern id="waves" width="24" height="12" patternUnits="userSpaceOnUse"><path d="M0 6 Q6 0 12 6 T24 6" fill="none" stroke="rgba(120,160,255,.08)" stroke-width="1.2"/></pattern></defs>
+    <defs><pattern id="waves" width="24" height="12" patternUnits="userSpaceOnUse"><path d="M0 6 Q6 0 12 6 T24 6" fill="none" stroke="rgba(120,160,255,.08)" stroke-width="1.2"/></pattern>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".7" fill="rgba(255,255,255,.13)"/><circle cx="4.5" cy="4.5" r=".7" fill="rgba(0,0,0,.12)"/></pattern></defs>
     <rect x="-2000" y="-2000" width="${W + 4000}" height="${Hh + 4000}" fill="url(#waves)"/>
-    ${links}${cells}<path class="tborder" d="${borders}"/><path class="coast" d="${coast}"/><g id="badges">${badges}</g><g id="fx"></g>`;
+    <path class="glow" d="${all}"/>${links}<g id="lands">${lands}</g><path class="grain" d="${all}"/><g id="flood"></g><path class="edges" d="${edges}"/><g id="badges">${badges}</g><g id="fx"></g>`;
   C.full = { x: 0, y: 0, w: W, h: Hh };
   fit();
   $$('.terr', svg).forEach(g => g.addEventListener('click', e => { if (!C.dragged) tapTerr(g.dataset.t); }));
@@ -172,9 +157,11 @@ function fit() {
   const s = vw < vh ? Math.min(vh / f.h * .85, vw / f.w * 2.1) : Math.min(vw / f.w, vh / f.h);
   const w = r.width / s, h = r.height / s;
   C.view = { x: f.x - (w - f.w) / 2, y: f.y - padTop / s - (vh / s - f.h) / 2, w, h };
+  // se la mappa non entra tutta (telefono), si parte dal baricentro dei territori, senza uscire dai bordi
+  if (w < f.w && M) { const mx = M.terr.reduce((a, t) => a + t.c[0], 0) / M.terr.length; C.view.x = Math.max(f.x, Math.min(f.x + f.w - w, mx - w / 2)); }
   setView();
 }
-function setView() { const v = C.view; $('#map').setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); }
+function setView() { const v = C.view, svg = $('#map'); svg.setAttribute('viewBox', `${v.x} ${v.y} ${v.w} ${v.h}`); svg.classList.toggle('far', M?.id === 'mondo' && v.w > C.full.w * .75); }
 $('#fitBtn').onclick = () => fit();
 addEventListener('resize', () => C.full && fit());
 
@@ -213,7 +200,7 @@ function render(st) {
   const pl = st.players;
   for (const t of M.terr) {
     const g = $(`.terr[data-t="${t.id}"]`), col = pl[st.owner[t.id]].color;
-    g.querySelectorAll('.cell').forEach((c, i) => { c.style.fill = shade(col, ((i * 37) % 9) / 60 - .07); c.style.stroke = shade(col, -.15); });
+    const land = g.firstChild, c = shade(col, tint(t.id)); land.style.fill = c; land.style.stroke = c;
     const b = $(`[data-b="${t.id}"]`);
     b.querySelector('circle').style.fill = shade(col, -.35); b.querySelector('text').textContent = st.armies[t.id];
     g.classList.toggle('sel', C.sel === t.id);
@@ -347,13 +334,21 @@ function floatAt(id, txt) {
   t.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-18px)', opacity: 0 }], { duration: 900, easing: 'ease-out' }).finished.then(() => t.remove(), () => t.remove());
   setTimeout(() => t.remove(), 1200);
 }
-// il colore del vincitore si allarga cella per cella dal punto d'attacco
+// il colore del vincitore si allarga a cerchio dal punto d'attacco, dentro i confini del territorio
 async function flood(id, color, fromId) {
-  const g = $(`.terr[data-t="${id}"]`), t = M.terr.find(x => x.id === id), [ox, oy] = centers[fromId];
-  const cs = [...g.querySelectorAll('.cell')];
-  cs.forEach((c, i) => { const [x, y] = cellXY(...t.cells[i]); const d = Math.hypot(x - ox, y - oy); c.style.transition = 'none'; c.style.fill = '#fff';
-    setTimeout(() => { c.style.transition = 'fill .45s ease'; c.style.fill = shade(color, ((i * 37) % 9) / 60 - .07); }, d * 4); });
-  sfx('pop'); await sleep(450);
+  const t = M.terr.find(x => x.id === id), [x0, y0] = centers[fromId] || t.c, NS = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(NS, 'g'), cid = 'fl' + Math.random().toString(36).slice(2, 8), c = shade(color, tint(id));
+  const far = Math.max(...t.d.match(/-?[\d.]+ -?[\d.]+/g).map(p => { const [x, y] = p.split(' ').map(Number); return Math.hypot(x - x0, y - y0); })) + 4;
+  g.innerHTML = `<clipPath id="${cid}"><path d="${t.d}"/></clipPath><g clip-path="url(#${cid})"><circle class="f1" cx="${x0}" cy="${y0}" r="${far}" fill="#fff"/><circle class="f2" cx="${x0}" cy="${y0}" r="${far}" fill="${c}"/></g>`;
+  $('#flood').appendChild(g);
+  g.querySelectorAll('circle').forEach(k => Object.assign(k.style, { transformBox: 'fill-box', transformOrigin: 'center' }));
+  const dur = 650, ease = 'cubic-bezier(.3,.7,.4,1)';
+  g.querySelector('.f1').animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: dur * .7, easing: ease, fill: 'forwards' });
+  g.querySelector('.f2').animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: dur, delay: 120, easing: ease, fill: 'both' });
+  sfx('pop'); await sleep(dur + 140);
+  const land = $(`.terr[data-t="${id}"] .land`);
+  if (land) { land.style.transition = 'none'; land.style.fill = c; land.style.stroke = c; }
+  setTimeout(() => { g.remove(); if (land) land.style.transition = ''; }, 60);
 }
 // un carrarmatino attraversa dalla partenza all'arrivo
 async function march(a, b, color) {

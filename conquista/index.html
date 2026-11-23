@@ -14,16 +14,19 @@
   #map { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
   #map.drag { cursor: grabbing; }
   .sea { fill: #0f1a33; }
-  .cell { stroke-width: .6; transition: fill .5s ease; }
-  .tborder { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
-  .coast { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; pointer-events: none; opacity: .9; }
+  .land { stroke-width: 1.2; stroke-linejoin: round; transition: fill .5s ease, filter .3s; }
+  .glow { fill: none; stroke: rgba(130,170,255,.18); stroke-width: 7; stroke-linejoin: round; pointer-events: none; }
+  .grain { fill: url(#grain); pointer-events: none; }
+  .edges { fill: none; stroke: rgba(255,255,255,.9); stroke-width: 1.3; stroke-linejoin: round; stroke-linecap: round; pointer-events: none; }
   .link { stroke: rgba(255,255,255,.35); stroke-width: 1.4; stroke-dasharray: 4 5; fill: none; pointer-events: none; }
   .terr { cursor: pointer; }
-  .terr.sel .cell { filter: brightness(1.35); }
-  .terr.target .cell { animation: tgt 1s ease-in-out infinite; }
+  .terr.sel .land { filter: brightness(1.35); }
+  .terr.target .land { animation: tgt 1s ease-in-out infinite; }
   @keyframes tgt { 50% { filter: brightness(1.5) saturate(1.3); } }
-  .terr.dim .cell { filter: brightness(.55) saturate(.6); }
+  .terr.dim .land { filter: brightness(.55) saturate(.6); }
   .badge { pointer-events: none; }
+  #map.far .tname { opacity: 0; }
+  #map .tname { transition: opacity .3s; }
   .badge circle { stroke: #fff; stroke-width: 2; }
   .badge text { font: 800 11px 'Bricolage Grotesque', sans-serif; fill: #fff; text-anchor: middle; dominant-baseline: central; }
   .badge .bi.bump { animation: bump .5s cubic-bezier(.34,1.56,.64,1); transform-box: fill-box; transform-origin: center; }
@@ -69,7 +72,8 @@
   .att-cup.shake { animation: shake .12s linear infinite; }
   @keyframes shake { 0% { transform: rotate(-12deg) translateY(-6px); } 50% { transform: rotate(12deg) translateY(-10px); } 100% { transform: rotate(-12deg) translateY(-6px); } }
   .att-cup.tip { transform: rotate(70deg) translateX(20px); } .def-cup.tip { transform: rotate(250deg) translateX(20px); }
-  .die { position: absolute; left: 0; top: 0; width: var(--ds); height: var(--ds); transform-style: preserve-3d; z-index: 2; }
+  .die { position: absolute; left: 0; top: 0; width: var(--ds); height: var(--ds); transform-style: preserve-3d; z-index: 2; will-change: transform; }
+  .cube { will-change: transform; }
   .cube { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; }
   .face { position: absolute; inset: 0; border-radius: 22%; background: var(--dc); display: grid; grid-template-columns: repeat(3, 1fr); padding: 14%; gap: 2%;
     box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), inset -4px -4px 8px rgba(0,0,0,.25); backface-visibility: hidden; }
