@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#151513">
+<meta name="robots" content="noindex">
+<title>Bon Gust · Personal</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23151513'/><text x='32' y='44' font-size='34' text-anchor='middle' font-family='Arial Black' fill='%23f7d21c'>B</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  body{background:var(--wall2)}
+  .open-dot{width:10px;height:10px;border-radius:50%;background:#58b86c;animation:pulse 2s infinite}.open-dot.closed{background:var(--terra);animation:none}
+  .oc .tm,.bk .tm{font-family:var(--hand);font-weight:700}
+  .login h3{font-family:var(--serif)}
+  .bar2{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:18px 0}
+  .datebar{display:flex;align-items:center;gap:6px}
+  .datebar input{border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;background:#fff;font-weight:700}
+  .iconb{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;font-weight:800;font-size:18px}
+  .tabs{display:flex;gap:6px}
+  .tabs .chip .n{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;background:var(--red);color:#fff;font-size:12px;margin-left:6px;padding:0 5px}
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+  .col h3{display:flex;justify-content:space-between;align-items:center;font-size:20px;margin:0 0 10px}
+  .col h3 span{font-size:15px;background:var(--ink);color:var(--yellow);border-radius:999px;padding:2px 10px}
+  .oc{background:#fff;border-radius:16px;padding:14px;margin-bottom:10px;border:2px solid transparent;animation:pop .4s var(--spring) both}
+  .oc.new{border-color:var(--yellow);box-shadow:0 0 0 4px rgba(247,210,28,.3)}
+  .oc.late{border-color:var(--red)}
+  .oc .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .oc .tm{font-weight:900;font-variation-settings:"wdth" 75;font-size:32px;line-height:1}
+  .oc .cd{font-weight:800;color:var(--muted);letter-spacing:.06em}
+  .oc ul{margin:8px 0;padding-left:0;list-style:none}
+  .oc li{padding:3px 0;border-bottom:1px dashed var(--line)}
+  .oc li small{color:var(--muted);display:block}
+  .oc .who{font-weight:800}
+  .badge{display:inline-block;background:var(--ink);color:var(--yellow);border-radius:6px;font-size:12px;font-weight:800;padding:2px 7px;margin-left:4px}
+  .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .acts .btn{padding:9px 14px;font-size:14px}
+  .tl{background:#fff;border-radius:16px;padding:12px;overflow-x:auto;margin-bottom:16px}
+  .tl-in{position:relative;min-width:760px}
+  .tl-row{display:flex;align-items:center;height:34px;border-bottom:1px solid #f0ead9}
+  .tl-row b{width:70px;flex:none;font-size:13px}
+  .tl-track{position:relative;flex:1;height:100%}
+  .tl-hours{display:flex;margin-left:70px;font-size:11px;color:var(--muted);font-weight:700}
+  .tl-hours span{flex:1;border-left:1px solid #eee;padding-left:3px}
+  .blk{position:absolute;top:4px;bottom:4px;border-radius:7px;background:var(--yellow);font-size:11px;font-weight:800;padding:0 6px;overflow:hidden;white-space:nowrap;display:flex;align-items:center;cursor:pointer;border:1.5px solid #b39500}
+  .blk.seated{background:#9bd5a9;border-color:var(--green)}
+  .blk.done{background:#ddd;border-color:#bbb;color:#777}
+  .now{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:2}
+  .bk{display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:center;background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:8px}
+  .bk .tm{font-weight:900;font-size:24px;font-variation-settings:"wdth" 75}
+  .bk.cancelled,.bk.noshow,.bk.done{opacity:.55}
+  .pick{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+  .pick button{width:44px;height:38px;border-radius:10px;border:1.5px solid var(--ink);background:#fff;font-weight:800}
+  .pick button[aria-pressed=true]{background:var(--yellow)}
+  .pick button.busy{background:#f3d6cf;border-color:#e0a091}
+  .mt{width:100%;border-collapse:collapse;background:#fff;border-radius:16px;overflow:hidden;font-size:14px}
+  .mt th{background:var(--ink);color:#fff;text-align:left;padding:10px;font-size:13px}
+  .mt td{padding:6px 8px;border-bottom:1px solid #eee}
+  .mt input[type=text],.mt input[type=number],.mt select{width:100%;border:1.5px solid transparent;border-radius:8px;padding:6px;background:transparent}
+  .mt input:focus,.mt select:focus{border-color:var(--yellow);background:#fffbe6;outline:none}
+  .mt tr.dirty td{background:#fffbe6}
+  .sw{width:22px;height:22px;accent-color:var(--green)}
+  .login{max-width:380px;margin:12vh auto;background:#fff;border-radius:22px;padding:28px;box-shadow:var(--shadow)}
+  @media (max-width:860px){.cols{grid-template-columns:1fr}.bk{grid-template-columns:60px 1fr}.bk .acts{grid-column:1/-1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="./">BON GUST <small style="font-size:13px;font-weight:800;margin-left:8px;color:var(--terra)">PERSONAL</small></a>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center"><span id="live" class="open-dot"></span><button class="lang hide" id="logout" style="cursor:pointer">Salir</button></div>
+</div></header>
+
+<form class="login hide" id="login">
+  <h3 style="font-size:30px;margin-bottom:6px">Acceso personal</h3>
+  <p class="sub" style="color:var(--muted);margin-bottom:16px">Pedidos, reservas y carta del Bon Gust.</p>
+  <label class="field"><span>Contraseña</span><input type="password" name="pass" required autocomplete="current-password"></label>
+  <div class="err" id="loginErr"></div>
+  <button class="btn pri" style="width:100%">Entrar</button>
+</form>
+
+<main class="wrap hide" id="app">
+  <div class="bar2">
+    <div class="datebar"><button class="iconb" id="dPrev" aria-label="Día anterior">‹</button><input type="date" id="dPick"><button class="iconb" id="dNext" aria-label="Día siguiente">›</button><button class="chip sm" id="dToday">Hoy</button></div>
+    <div class="tabs" id="tabs">
+      <button class="chip" data-tab="orders" aria-pressed="true">🥖 Pedidos<span class="n hide" id="nNew"></span></button>
+      <button class="chip" data-tab="bookings" aria-pressed="false">🍽️ Reservas</button>
+      <button class="chip" data-tab="menu" aria-pressed="false">📋 Carta</button>
+    </div>
+  </div>
+
+  <div id="t-orders"></div>
+  <div id="t-bookings" class="hide"></div>
+  <div id="t-menu" class="hide"></div>
+</main>
+
+<div class="modal" id="optModal" aria-hidden="true"><div class="scrim" data-close></div><div class="box" role="dialog" aria-modal="true" id="optBox"></div></div>
+<div class="toast" id="toast"></div>
+<script type="module" src="staff.js"></script>
+</body>
+</html>

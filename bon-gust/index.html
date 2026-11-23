@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#c8553d">
+<title>Bar Bon Gust · Poblenou</title>
+<meta name="description" content="Bar Bon Gust, Carrer de Pujades 155 (esquina Llacuna), Poblenou, Barcelona. Bocadillos, bikinis y platos combinados. Reserva mesa o pide para recoger.">
+<meta property="og:title" content="Bar Bon Gust · Poblenou">
+<meta property="og:description" content="¿Lo de siempre? Bocadillos, bikinis y platos combinados en Pujades con Llacuna. Reserva mesa o pide para recoger.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23c8553d'/><path d='M16 26h28v8a14 14 0 0 1-28 0z' fill='%23fbf4e6'/><path d='M44 29h3a5 5 0 0 1 0 10h-4' fill='none' stroke='%23fbf4e6' stroke-width='4'/><path d='M24 12c-3 4 3 6 0 10M32 10c-3 4 3 6 0 10' stroke='%23fbf4e6' stroke-width='3' fill='none' stroke-linecap='round'/></svg>">
+<link rel="preload" href="fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="modulepreload" href="vendor/three.module.min.js">
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="logo" href="#" aria-label="Bon Gust">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="#c8553d"/><path d="M12 22h20v6a10 10 0 0 1-20 0z" fill="#fbf4e6"/><path d="M32 24h2.5a4 4 0 0 1 0 8H31" fill="none" stroke="#fbf4e6" stroke-width="3"/><g class="logo-steam" stroke="#fbf4e6" stroke-width="2.4" fill="none" stroke-linecap="round"><path d="M18 9c-2.5 3 2.5 5 0 8"/><path d="M24 7c-2.5 3 2.5 5 0 8"/></g></svg>
+      <span>Bon Gust<small>bar · Poblenou</small></span>
+    </a>
+    <nav class="nav">
+      <a href="#carta" data-i="nav_menu">Carta</a>
+      <a href="#reservar" data-i="nav_book">Reservar</a>
+      <a href="#info" data-i="nav_info">Dónde estamos</a>
+    </nav>
+    <select class="lang" id="lang" aria-label="Idioma">
+      <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option><option value="it">IT</option>
+    </select>
+    <button class="cartbtn" id="cartBtn"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M5 8h14l-1.4 11.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M9 8a3 3 0 0 1 6 0" fill="none" stroke="currentColor" stroke-width="2.2"/></svg><span class="lbl" data-i="my_order">Mi pedido</span><span class="n" id="cartN">0</span></button>
+  </div>
+</header>
+
+<div class="awning" aria-hidden="true"><svg id="awning" preserveAspectRatio="none" viewBox="0 0 1200 60"></svg></div>
+
+<main>
+<section class="hero">
+  <div class="wrap hero-in">
+    <div class="hero-txt">
+      <div class="sign">
+        <span class="nail"></span>
+        <span class="chalk" id="openTxt">&nbsp;</span>
+      </div>
+      <p class="kicker reveal"><span>Pujades 155</span> · <span data-i="corner">esquina Llacuna</span></p>
+      <h1 class="reveal"><span data-i="hero_h1a">¿Lo de</span> <em data-i="hero_h1b">siempre?</em>
+        <svg class="scribble" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M4 16C60 6 120 4 296 10M20 20c70-6 160-8 250-4"/></svg></h1>
+      <p class="lead reveal" data-i="hero_lead">Bocadillos de toda la vida, bikinis y platos combinados en la esquina de Pujades con Llacuna. Siéntate con nosotros o pide desde la oficina y baja a recogerlo.</p>
+      <div class="ctas reveal">
+        <a class="btn pri" href="#carta" data-i="cta_order">Pedir para recoger</a>
+        <a class="btn sec" href="#reservar" data-i="cta_book">Reservar mesa</a>
+      </div>
+      <ul class="facts reveal">
+        <li><b>11</b><span data-i="f_tables">mesas</span></li>
+        <li><b>50+</b><span data-i="f_dishes">platos</span></li>
+        <li><b>2'</b><span data-i="f_metro">del metro L4</span></li>
+      </ul>
+    </div>
+    <div class="counter">
+      <div class="spot"></div>
+      <div id="hero3d" class="hero3d" role="img" aria-label="Bocadillo"></div>
+      <div class="tag3d" id="tag3d">
+        <span class="hand" data-i="today_rec">Hoy te recomendamos</span>
+        <b id="recName">Jamón serrano</b>
+        <span class="price" id="recPrice">4,25 €</span>
+        <div class="tagbtns">
+          <button class="mini" id="recNext">↻ <span data-i="other">Otro</span></button>
+          <button class="mini pri" id="recAdd">+ <span data-i="want_it">Lo quiero</span></button>
+        </div>
+      </div>
+      <p class="hint" data-i="hint3d">Arrástralo para girarlo · tócalo para cambiar</p>
+    </div>
+  </div>
+  <div class="tiles-band" aria-hidden="true"></div>
+</section>
+
+<div class="wrap">
+  <div class="postit reveal">
+    <span class="tape"></span>
+    <div class="ico">💼</div>
+    <div><b data-i="fact_t">¿Trabajas en Factorial o por el 22@?</b><p data-i="fact_p">Pide tu bocadillo desde el escritorio, elige la hora y baja: estará listo y envuelto con tu nombre.</p></div>
+    <a class="btn ink s" href="#carta" id="factBtn" data-i="fact_b">Pedir ahora</a>
+  </div>
+</div>
+
+<section id="carta" class="menu-sec">
+  <div class="wrap">
+    <div class="shead">
+      <div class="reveal"><span class="kicker" data-i="k_menu">La carta</span><h2 data-i="menu_t">Bocadillos y más</h2>
+        <p data-i="menu_p">La misma carta de las pizarras de la puerta. Toca + para añadir a tu pedido.</p></div>
+      <div class="polaroids reveal">
+        <button class="pol" data-big="img/pizarra-bocadillos.jpg" style="--r:-6deg"><img src="img/pizarra-bocadillos.jpg" alt="Pizarra de bocadillos en la puerta del bar" loading="lazy" width="900" height="1200"><span class="hand" data-i="pol1">la pizarra 🥖</span></button>
+        <button class="pol" data-big="img/pizarra-combinados.jpg" style="--r:5deg"><img src="img/pizarra-combinados.jpg" alt="Pizarra de platos combinados" loading="lazy" width="900" height="1200"><span class="hand" data-i="pol2">combinados 🍳</span></button>
+      </div>
+    </div>
+    <div class="cats" id="cats" role="toolbar"></div>
+    <div class="note" id="supNote"><span class="hand" aria-hidden="true">👉</span> <span data-i="sup_note">Suplemento queso, cebolla o pimiento: +0,70 €. Casi todos los bocadillos también en medio.</span></div>
+    <div class="grid" id="menu"><div class="empty"><div class="spinner" style="margin:auto"></div></div></div>
+  </div>
+</section>
+
+<section id="reservar" class="board-sec">
+  <div class="wrap">
+    <div class="shead reveal">
+      <div><span class="kicker" data-i="k_book">Reservas</span><h2 data-i="book_t">Reserva tu mesa</h2>
+      <p data-i="book_p">11 mesas de 4. Si sois más, juntamos mesas: de 5 a 16 personas os unimos las mesas que están una al lado de la otra.</p></div>
+    </div>
+    <div class="book">
+      <div class="panel" id="bookPanel">
+        <div class="step"><div class="lbl"><i>1</i><span data-i="b_day">¿Qué día?</span></div><div class="days" id="days"></div></div>
+        <div class="step"><div class="lbl"><i>2</i><span data-i="b_people">¿Cuántos sois?</span></div>
+          <div class="people-row"><div class="stepper"><button id="pMinus" aria-label="−">−</button><output id="pOut"></output><button id="pPlus" aria-label="+">+</button></div>
+          <div class="heads" id="heads" aria-hidden="true"></div></div>
+          <p class="sub" id="pSub"></p></div>
+        <div class="step"><div class="lbl"><i>3</i><span data-i="b_time">¿A qué hora?</span></div><div class="slots" id="slots"></div><p class="sub" id="slotSub"></p></div>
+        <form id="bookForm" class="step" autocomplete="on">
+          <div class="lbl"><i>4</i><span data-i="b_you">Tus datos</span></div>
+          <div class="two">
+            <label class="field"><span data-i="f_name">Nombre</span><input name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+            <label class="field"><span data-i="f_phone">Teléfono</span><input name="phone" required type="tel" minlength="6" maxlength="30" autocomplete="tel"></label>
+          </div>
+          <label class="field"><span data-i="f_email">Email (opcional)</span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+          <label class="field"><span data-i="f_notes">Notas (alergias, trona, cumpleaños…)</span><textarea name="notes" rows="2" maxlength="500"></textarea></label>
+          <div class="err" id="bookErr"></div>
+          <button class="btn pri" style="width:100%" id="bookBtn" data-i="b_confirm">Confirmar reserva</button>
+        </form>
+        <div id="bookDone" class="hide"></div>
+      </div>
+      <div class="plan">
+        <svg id="planSvg" viewBox="0 0 100 100" role="img" aria-label="Plano del local"></svg>
+        <div class="planmsg" id="planMsg"></div>
+        <div class="legend">
+          <span><i style="background:#a0704a"></i><span data-i="lg_free">Libre</span></span>
+          <span><i style="background:#f2b632"></i><span data-i="lg_yours">Tu mesa</span></span>
+          <span><i style="background:#4b423b"></i><span data-i="lg_busy">Ocupada</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="info">
+  <div class="wrap">
+    <div class="shead reveal"><div><span class="kicker" data-i="k_info">Dónde estamos</span><h2>Pujades 155</h2>
+      <p data-i="info_p">En la esquina con Carrer de la Llacuna, Poblenou (08005). Metro L4 Llacuna, a dos minutos.</p></div></div>
+    <div class="info">
+      <div class="icard hours-card reveal">
+        <h3 data-i="hours_t">Horario</h3>
+        <table class="hours" id="hours"></table>
+        <p class="sub" data-i="hours_n">Terraza, desayunos, almuerzos y comidas. Grupos de hasta 16 con reserva; para más, pasad por la barra.</p>
+        <div class="ctas" style="margin-top:14px">
+          <a class="btn ink s" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Bar+Bon+Gust+Carrer+de+Pujades+155+Barcelona" data-i="directions">Cómo llegar</a>
+        </div>
+      </div>
+      <div class="map reveal"><iframe title="Mapa" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=2.1930%2C41.3965%2C2.2020%2C41.4012&amp;layer=mapnik&amp;marker=41.39885%2C2.19745"></iframe></div>
+    </div>
+
+    <div class="icard reveal" id="mio" style="margin-top:20px">
+      <h3 data-i="mine_t">¿Ya tienes reserva o pedido?</h3>
+      <p class="sub" style="margin-bottom:14px" data-i="mine_p">Mira el estado o anúlalo con el código y tu teléfono.</p>
+      <form class="lookup" id="lookForm">
+        <label class="field"><span data-i="f_code">Código</span><input name="code" required maxlength="6" style="text-transform:uppercase" placeholder="R7K2M"></label>
+        <label class="field"><span data-i="f_phone">Teléfono</span><input name="phone" required type="tel"></label>
+        <button class="btn ink s" data-i="look">Buscar</button>
+      </form>
+      <div class="res" id="lookRes"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site">
+  <div class="tiles-band" aria-hidden="true"></div>
+  <div class="wrap">
+    <div><b class="flogo">Bon Gust</b><br>Carrer de Pujades, 155 · 08005 Barcelona<br><span class="hand" data-i="bye">¡Hasta mañana!</span></div>
+    <div><a href="staff.html" data-i="staff">Acceso personal</a></div>
+  </div>
+</footer>
+
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="scrim" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <header><h3 id="dTitle" data-i="my_order">Mi pedido</h3><button class="x" data-close aria-label="×">✕</button></header>
+    <div class="body" id="cartBody"></div>
+    <footer id="cartFoot"></footer>
+  </div>
+</div>
+
+<div class="modal" id="optModal" aria-hidden="true">
+  <div class="scrim" data-close></div>
+  <div class="box" role="dialog" aria-modal="true" id="optBox"></div>
+</div>
+
+<div class="lightbox" id="lightbox" aria-hidden="true"><img alt=""></div>
+<div class="toast" id="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
