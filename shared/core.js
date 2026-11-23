@@ -23,6 +23,7 @@ export const GAMES = {
   morra: { name: 'Morra calabrese', path: 'morra/' },
   briscola: { name: 'Briscola', path: 'briscola/' },
   carte: { name: 'Scarta!', path: 'carte/' },
+  conquista: { name: 'Conquista!', path: 'conquista/' },
   nerf: { name: 'Nerf in Salotto', path: 'nerf-salotto/nerf-salotto.html' },
   guessr: { name: 'ItaliaGuessr', path: 'italia-guessr/italia-guessr.html' },
   menu: { name: 'Menu', path: '' },

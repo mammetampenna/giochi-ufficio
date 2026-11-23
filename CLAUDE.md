@@ -111,6 +111,30 @@ Ogni gioco storico ha il suo CLAUDE.md: `italia-guessr/CLAUDE.md` e `nerf-salott
 - **Animazioni**: carte che volano, scritte grosse a centro schermo ("+4", "Salta!", "Inverti!", "Beccato!"), timbri sui giocatori e alone del colore attivo dietro al tavolo.
 - **Test**: `window.__scarta`. La simulazione di 500 partite in Node con le stesse regole non perde carte.
 
+## Conquista! (`conquista/`), gioco alla Risiko con nome e mappe originali
+- **Mappe** (`mappe.js`): Mondo (38 territori, 6 continenti), Europa (28) e Italia (25), disegnate a esagoni.
+  - Ogni territorio è fatto di rettangoli di celle "odd-r"; il generatore smussa gli angoli a caso.
+  - Le adiacenze si calcolano dalle celle che si toccano, più i collegamenti via mare in `links`.
+  - Lo script di controllo verifica che le mappe siano collegate e che nessun territorio sia spezzato.
+- **Regole** (`regole.js`, stato JSON):
+  - Rinforzi: max(3, territori/3) più i bonus delle regioni.
+  - Carte carro/aereo/nave/jolly. Tris: 4, 6, 8, 10 oppure 12 con il jolly, +2 se possiedi il territorio della carta. Con 5 carte la combinazione è obbligatoria.
+  - Attacco fino a 3 dadi contro 3 (alla Risiko): in caso di pareggio vince la difesa.
+  - Dopo una conquista si spostano almeno tante armate quanti dadi lanciati; uno spostamento tra territori vicini chiude il turno.
+  - Obiettivi segreti: N territori, N territori con 2 armate, due regioni, eliminare un giocatore. In alternativa, la conquista totale.
+  - L'IA è in `botMove`. Una simulazione di 720 partite (3 mappe, da 2 a 6 giocatori) finisce sempre, in 7-26 giri.
+- **Dadi** (`dadi.js`), il cuore del gioco:
+  - Si tiene premuto il bicchiere (o la barra spaziatrice) per scuoterlo e si rilascia per lanciare: più a lungo scuoti, più forte lanci.
+  - Dadi 3D in CSS con una fisica semplice (rimbalzi e urti), che atterrano sempre sui valori decisi dalle regole.
+  - Poi si mettono in fila e si scontrano a coppie: esplosioni, carrarmatini che volano via, "Sfondato!", "Difeso!", "Conquistato!", "Tris!", "Doppio sei!". Quando può arrivare la conquista, c'è il rallentatore.
+  - Il pulsante "Fino in fondo" lancia a raffica. Le battaglie degli altri si vedono in versione veloce.
+- **Interfaccia** (`conquista.js`):
+  - Mappa SVG da trascinare e da avvicinare con due dita o con la rotellina.
+  - Fasi: rinforzi (+1, +3, tutte), attacco (selezione e bersagli lampeggianti), spostamento.
+  - Finestre per le carte, l'obiettivo e le armate da spostare. Il colore del vincitore si allarga cella per cella e i carrarmatini marciano.
+- **Online (per ora)**: dal vivo, decide l'host, come nella briscola; lo stato è salvato in `game_rooms.state`.
+- **Da fare**: partite in sospeso vere, con l'arbitro e i dadi su una Edge Function di Supabase (così nessuno bara e si gioca anche quando l'host è offline), "Le mie partite" nel menu e il ritmo "con calma". L'utente non vuole voci generate con ElevenLabs perché costano troppo.
+
 ## Chi è online
 - Tutte le pagine (anche ItaliaGuessr e Nerf, con un piccolo modulo in fondo alla pagina) entrano nel canale presence `gu:hub` con `announce({game, code, status})`.
 - Il menu mostra "Online ora": cosa fa ciascuno, con i pulsanti "Entra"/"Guarda" per la sua stanza e 👋 per salutarlo.

@@ -55,6 +55,7 @@
     box-shadow: 0 20px 50px -25px rgba(0,0,0,.8);
   }
   .card.wide { grid-column: span 3; }
+  .card.nerfc { grid-column: span 6; min-height: 240px; }
   .card:hover { transition: transform .12s linear, box-shadow .4s, border-color .3s; border-color: color-mix(in srgb, var(--c1) 60%, transparent);
     box-shadow: 0 30px 70px -25px color-mix(in srgb, var(--c1) 70%, transparent); }
   .card::after { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
@@ -94,11 +95,14 @@
   .orbit b { position: absolute; left: 63px; top: 52px; width: 44px; height: 66px; border-radius: 9px; border: 3px solid #fff; display: grid; place-items: center;
     font-size: 24px; font-weight: 800; color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.35); text-shadow: 0 2px 0 rgba(0,0,0,.25); }
 
+  .dice3 { display: flex; gap: 10px; }
+  .dice3 b { display: grid; place-items: center; width: 62px; height: 62px; border-radius: 14px; background: #fff; color: #7b6cff; font-size: 60px; line-height: 1; box-shadow: 0 10px 20px rgba(0,0,0,.4); }
+  .dice3 b:nth-child(2) { background: #ff5b7f; color: #fff; transform: rotate(-12deg); } .dice3 b:nth-child(3) { background: #3fd6c6; color: #fff; transform: rotate(10deg); }
   footer { margin-top: 40px; color: var(--dim); font-size: 13px; text-align: center; opacity: .7; }
-  @media (max-width: 900px) { .card, .card.wide { grid-column: span 3; } }
+  @media (max-width: 900px) { .card, .card.wide, .card.nerfc { grid-column: span 3; } }
   @media (max-width: 620px) {
     main { padding-top: 72px; }
-    .card, .card.wide { grid-column: span 6; min-height: 280px; }
+    .card, .card.wide, .card.nerfc { grid-column: span 6; min-height: 280px; }
     .joinbox { margin-left: 0; width: 100%; }
     .boxes input { flex: 1; width: auto; min-width: 0; }
     .hero p { font-size: 16px; }
@@ -146,6 +150,13 @@
       <p>Colori, numeri, carte cattive. Vince chi resta senza carte.</p>
       <span class="go" data-ico="arrow"></span>
     </a>
+    <a class="card" href="conquista/" data-game="conquista" style="--c1:#7b6cff;--c2:#ff5b7f">
+      <div class="scene"><div class="dice3" id="dice3"><b>⚂</b><b>⚄</b><b>⚅</b></div></div>
+      <div class="tags"><span class="tag live">● Online</span><span class="tag">2–6</span><span class="tag">vs computer</span></div>
+      <h2 class="t">Conquista!</h2>
+      <p>Carrarmatini, dadi e obiettivi segreti su Mondo, Europa o Italia.</p>
+      <span class="go" data-ico="arrow"></span>
+    </a>
     <a class="card" href="italia-guessr/italia-guessr.html" data-game="guessr" style="--c1:#3fd6c6;--c2:#7b6cff">
       <div class="scene"><svg class="italy" id="italy"></svg><div class="ring" id="ring"></div><div class="pin" id="pin">📍</div></div>
       <div class="tags"><span class="tag live">● Online</span><span class="tag">Street View</span></div>
@@ -153,7 +164,7 @@
       <p>Dove ti trovi? Indovina il posto sulla mappa.</p>
       <span class="go" data-ico="arrow"></span>
     </a>
-    <a class="card" href="nerf-salotto/nerf-salotto.html" data-game="nerf" style="--c1:#ff7a45;--c2:#3b82f6">
+    <a class="card nerfc" href="nerf-salotto/nerf-salotto.html" data-game="nerf" style="--c1:#ff7a45;--c2:#3b82f6">
       <div class="scene">
         <svg class="target" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#ff5b5b"/><circle cx="50" cy="50" r="38" fill="#fff"/><circle cx="50" cy="50" r="28" fill="#ff5b5b"/><circle cx="50" cy="50" r="18" fill="#fff"/><circle cx="50" cy="50" r="8" fill="#ff5b5b"/></svg>
         <svg class="dart" id="dart" viewBox="0 0 84 12"><rect x="0" y="3" width="60" height="6" rx="3" fill="#3b82f6"/><path d="M0 0 L14 6 L0 12 Z" fill="#ffb23f"/><rect x="58" y="1" width="26" height="10" rx="5" fill="#ff8a00"/></svg>
@@ -213,6 +224,7 @@ const play = {
     anim('#pin', { translateY: [-70, 0], opacity: [0, 1], duration: 620, ease: 'outBounce' });
     anim('#ring', { scale: [1, 7], opacity: [1, 0], duration: 900, delay: 500 });
   },
+  conquista() { anim('#dice3 b', { translateY: [0, -50, 0], rotate: () => [0, (Math.random() > .5 ? 1 : -1) * 360 + (Math.random() - .5) * 40], duration: 900, delay: stagger(90), ease: 'outBounce' }); },
   nerf() { anim('#dart', { translateX: [-160, 0], opacity: [0, 1], duration: 380, ease: 'outExpo' }); anim('.target', { scale: [1, .92, 1], duration: 360, delay: 340, ease: SPRING }); },
 };
 const rest = {
